@@ -27,11 +27,9 @@ case $confirm in
   [yY]|[yY][eE][sS])
     # 检查包管理器并设置对应变量
     if command -v apt-get >/dev/null 2>&1; then
-    PM=apt
-    elif command -v dnf >/dev/null 2>&1; then
-    PM=dnf
+    PM=apt install
     elif command -v pacman >/dev/null 2>&1; then
-    PM=pacman
+    PM=pacman -S
     else
     echo "未知的 Linux 发行版或包管理器"
     exit 1
@@ -40,7 +38,7 @@ case $confirm in
     # 利用 PM 变量安装软件包
     echo "使用 $PM 包管理器安装软件包"
     $PM update
-    $PM install -y dialog git
+    $PM dialog git
     if ! command -v dialog &> /dev/null; then
         echo "安装依赖失败，滚吧"
         exit 5
