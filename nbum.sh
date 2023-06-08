@@ -36,8 +36,8 @@ case $confirm in
     fi
 
     # 利用 PM 变量安装软件包
-    echo "使用 $PM 包管理器安装软件包"
     $PM dialog git
+    y
     if ! command -v dialog &> /dev/null; then
         echo "安装依赖失败，滚吧"
         exit 5
