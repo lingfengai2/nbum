@@ -52,28 +52,11 @@ case $confirm in
 esac
 else
 echo -e "依赖校验完成✅"
-fi
-# 找到本地 Git 仓库的目录（如果存在）
-cd
-REPO_DIR=$(find . -type d -name "nb-menu" -print -quit)
-if [[ -z "$REPO_DIR" ]]; then
-    echo "错误：未发现脚本目录，部分功能可能不生效"
-fi
 # 进入 nb-menu 目录并检查是否有更新
-cd "$REPO_DIR"
-# 检查远程仓库的更新
-git fetch origin
-# 检查本地仓库和远程仓库之间的差异
-if [[ $(git rev-parse HEAD) != $(git rev-parse @{u}) ]]; then
-    # 拉取远程仓库并合并更新到本地仓库
-    echo "检测到新的仓库版本，正在更新中"
+cd "$home/nbum"
     git pull origin
-    echo "代码已更新到最新版本！"
     exec
     exec ./nb-menu.sh
-else
-    echo -e "欢迎使用-v1.53\fnb's工具箱"
-fi
 trap ctrl_c INT
 function ctrl_c() {
  # 显示一个带有“退出”和“不要”按钮的消息框，提示用户是否要退出
