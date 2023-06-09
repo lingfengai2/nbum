@@ -54,7 +54,8 @@ else
 echo -e "依赖校验完成✅"
 fi
 # 进入 nb-menu 目录并检查是否有更新
-cd "$home/nbum"
+cd $home
+cd nbum
     git pull origin
     exec
     exec ./nbum.sh
