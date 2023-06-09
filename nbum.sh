@@ -56,7 +56,7 @@ echo -e "依赖校验完成✅"
 cd "$home/nbum"
     git pull origin
     exec
-    exec ./nb-menu.sh
+    exec ./nbum.sh
 trap ctrl_c INT
 function ctrl_c() {
  # 显示一个带有“退出”和“不要”按钮的消息框，提示用户是否要退出
