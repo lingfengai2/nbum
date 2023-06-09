@@ -56,9 +56,7 @@ fi
 # 进入 nb-menu 目录并检查是否有更新
 cd $home
 cd nbum
-    git pull origin
-    exec
-    exec ./nbum.sh
+git pull origin
 trap ctrl_c INT
 function ctrl_c() {
  # 显示一个带有“退出”和“不要”按钮的消息框，提示用户是否要退出
