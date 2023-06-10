@@ -58,6 +58,9 @@ cd $home
 cd nbum
 # 如果更新了则重新加载脚本
   if git status | grep "Your branch is up to date with 'origin/master'."
+  then
+    banb="1.09"
+    echo "当前版本为$banb"
   else
     git pull oringe master
     echo "更新完成。"
