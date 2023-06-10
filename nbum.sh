@@ -56,7 +56,14 @@ fi
 # 进入 nbum 目录并检查是否有更新
 cd $home
 cd nbum
-git pull origin master
+# 如果更新了则重新加载脚本
+  if git status | grep "Your branch is up to date with 'origin/master'."
+  else
+    git pull oringe master
+    echo "更新完成。"
+    sleep 1 # 等待 1 秒后重新加载 nbum.sh
+    source nbum.sh
+  fi
 trap ctrl_c INT
 function ctrl_c() {
  # 显示一个带有“退出”和“不要”按钮的消息框，提示用户是否要退出
