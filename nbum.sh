@@ -125,9 +125,11 @@ function show_android() {
       show_menu
     fi
     case $choice_android in
-      1) git clone https://github.com/remo7777/T-Header.git
+      1) cd $home
+         git clone https://github.com/remo7777/T-Header.git
          cd T-Header
-         bash t-header.sh ;;
+         bash t-header.sh
+         show_menu ;;
       2)  ;;
       3)  ;;
       4) show_menu ;;
