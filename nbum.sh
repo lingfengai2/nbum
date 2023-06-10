@@ -2,7 +2,9 @@
 # 进入 nbum 目录并检查是否有更新
 cd $home
 cd nbum
+if ! command -v dialog > /dev/null || ! command -v catimg > /dev/null || ! command -v git > /dev/null; then
 ./install.sh
+fi
 # 更新
 git pull origin master
 trap ctrl_c INT
