@@ -57,12 +57,12 @@ fi
 cd $home
 cd nbum
 # 如果更新了则重新加载脚本
-  if git status | grep "Your branch is up to date with 'origin/master'."
+  if git status | grep -q "Your branch is up to date with 'origin/master'." || git status | grep -q "nothing to commit, working tree clean" || git status | grep -q "无文件要提交，干净的工作区" ;
   then
-    banb="1.09"
+    banb="1.10"
     echo "当前版本为$banb"
   else
-    git pull oringe master
+    git pull origin master
     echo "更新完成。"
     sleep 1 # 等待 1 秒后重新加载 nbum.sh
     source nbum.sh
