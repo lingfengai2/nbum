@@ -64,6 +64,7 @@ else
   [yY]|[yY][eE][sS])
     git clone https://gitee.com/lingfengai/nbum.git
     chmod u+x nbum/nbum.sh
+    chmod u+x nbum/install.sh
     ./nbum/nbum.sh
     ;;
       *)
