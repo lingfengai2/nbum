@@ -53,10 +53,10 @@ esac
 else
 echo -e "依赖校验完成✅"
 fi
-# 进入 nb-menu 目录并检查是否有更新
+# 进入 nbum 目录并检查是否有更新
 cd $home
 cd nbum
-git pull origin
+git pull origin master
 trap ctrl_c INT
 function ctrl_c() {
  # 显示一个带有“退出”和“不要”按钮的消息框，提示用户是否要退出
@@ -91,7 +91,6 @@ function show_menu() {
     --title "菜单" \
     --menu "请选择一个选项:" \
     20 80 12 \
-    日历📆 "已停用" \
     获取天气🖼 "今天天气怎么样？" \
     刷只因工具⌨️ "包含ADB,ozip转zip…" \
     计算器📟 "妈妈再也不用担心我学习了" \
@@ -104,7 +103,6 @@ function show_menu() {
    fi 
    # 根据choice变量的值，调用不同的函数或重新显示菜单 
    case $choice in 
-     日历📆) show_calendar ;; 
      脚本选项) show_more_menu ;;
      获取天气🖼) curl "wttr.in?lang=zh"|lolcat;echo [按回车返回];read -sn1;show_menu ;;
      刷只因工具⌨️) ;;
@@ -122,14 +120,14 @@ function show_android() {
      1 "一键美化" \
      2 "选项2" \
      3 "选项3" \
-     4 "取消")
+     4 "返回主菜单")
     if [ -z "$choice_android" ]; then
       show_menu
     fi
     case $choice_android in
-      1) cd
-         git clone https://github.com/remo7777/T-Header.git
-         cd T-Header ;;
+      1) git clone https://github.com/remo7777/T-Header.git
+         cd T-Header
+         bash t-header.sh ;;
       2)  ;;
       3)  ;;
       4) show_menu ;;
