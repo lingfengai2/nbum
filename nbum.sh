@@ -55,7 +55,7 @@ function show_menu() {
    case $choice in 
      脚本选项) show_more_menu ;;
      获取天气🖼) curl "wttr.in?lang=zh"|lolcat;echo [按回车返回];read -sn1;show_menu ;;
-     刷只因工具⌨️) ;;
+     刷只因工具⌨️) show_shuaji ;;
      计算器📟) jiajian;;
      退出👋) ctrl_c ;; 
      安卓📱专用工具) show_android ;; 
@@ -226,6 +226,79 @@ changelog="
 # 在对话框更新日志
 dialog --no-collapse --backtitle "更新日志" --title "计算器更新日志" --msgbox "$changelog" 25 80
 show_more_menu
+}
+# 定义一个函数，用于显示菜单
+function show_shuaji() {
+     choice_shuaji=$(dialog --stdout --scrollbar --title "刷只因工具" \
+     --menu "请选择一个选项:" \
+     20 80 12 \
+     1 "ADB工具（不包含fastboot）" \
+     2 "选项2" \
+     3 "选项3" \
+     4 "返回主菜单")
+    if [ -z "$choice_shuaji" ]; then
+      show_menu
+    fi
+    case $choice_shuaji in
+      1) dialog --backtitle "提示" --title "提示" \
+       --yesno "该功能目前只支持Ubuntu和termux" 10 30
+      # 将dialog命令的退出状态保存到变量`status`中
+      status=$?
+      # 根据用户的选择执行不同的操作
+      if [ $status -eq 0 ]; then
+              # 检查设备类型
+         if [ "$(uname -o)" == "GNU/Linux" ]; then
+         # 获取ADB路径
+         adb_path=$(command -v adb)
+
+         # 检查ADB是否已经安装
+             if [ -z "${adb_path}" ]; then
+             echo "ADB未安装，正在安装..."
+         # 安装ADB
+               if [ "$(command -v apt)" != "" ]; then
+               apt install adb
+               else
+               echo "无法安装ADB，请安装"
+                fi
+              fi
+         elif [ "$(uname -o)" == "Android" ]; then
+         # 获取Android Tools路径
+         android_tools_path=$(command -v adb)
+
+         # 检查安卓工具是否已经安装
+                   if [ -z "${android_tools_path}" ]; then
+                   echo "Android Tools未安装，正在安装..."
+                   # 安装Android Tools
+                   apt install android-tools
+                   fi
+         else
+         echo "未知设备类型"
+         fi
+while true; do
+  # 显示输入框让用户输入要执行的adb命令
+  adb_chiose=$(dialog --inputbox "请输入要执行的adb命令（不需要加adb）：" 10 50 3>&1 1>&2 2>&3)
+
+  # 如果用户取消了输入，则退出循环
+  if [ $? -ne 0 ]; then
+    show_shuaji
+    break
+  fi
+  
+  # 使用adb执行用户输入的命令
+  adb $adb_chiose
+  # 提示用户按回车键继续输入命令
+  read -n 1 -s -r -p "按任意键继续..."
+  printf "\n"
+done
+      else
+        show_shuaji
+      fi
+ ;;
+      2)  ;;
+      3)  ;;
+      4)  ;;
+      *)  ;;
+    esac
 }
 show_menu
 exit 0
