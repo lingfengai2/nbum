@@ -32,14 +32,14 @@ case $confirm in
     PM="pacman -Syu --noconfirm"
     else
     echo "未知的 Linux 发行版或包管理器"
-    exit 1
+    exit 6
     fi
 
     # 利用 PM 变量安装软件包
     $PM dialog git python python-pip
     ;;
   *)
-    exit
+    exit 6
     ;;
 esac
 else
@@ -62,6 +62,7 @@ else
     ;;
       *)
     echo "无效的输入，操作已取消"
+    exit 6
     ;;
   esac
 fi
