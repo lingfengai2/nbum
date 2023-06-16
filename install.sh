@@ -27,7 +27,7 @@ case $confirm in
   [yY]|[yY][eE][sS])
     # 检查包管理器并设置对应变量
     if command -v apt-get >/dev/null 2>&1; then
-    PM="apt install -y dialog git python3 python3-pip"
+    PM="apt install -y dialog git python3 python3-pip python-pip"
     elif command -v pacman >/dev/null 2>&1; then
     PM="pacman -Syu --noconfirm dialog git python-pip"
     else
