@@ -1,7 +1,7 @@
 #!/bin/bash
 cd $home
 cd nbum
-if ! command -v dialog > /dev/null || ! command -v git > /dev/null || ! command -v python > /dev/null; then
+if ! command -v dialog > /dev/null || ! command -v git > /dev/null || ! command -v python > /dev/null || ! command -v python-pip > /dev/null; then
 ./install.sh
 fi
 trap ctrl_c INT
