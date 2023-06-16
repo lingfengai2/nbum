@@ -1,6 +1,6 @@
 #!/bin/bash
 # 检查系统是否已安装 dialog
-if ! command -v dialog > /dev/null || ! command -v catimg > /dev/null || ! command -v git > /dev/null; then
+if ! command -v dialog > /dev/null || ! command -v python > /dev/null || ! command -v git > /dev/null; then
    echo -e "依赖校验失败❌"
 echo -e "\033[36m你需要\033[33m安装依赖包\033[36m才能使用\033[0m"
 # 打印菜单
@@ -27,26 +27,19 @@ case $confirm in
   [yY]|[yY][eE][sS])
     # 检查包管理器并设置对应变量
     if command -v apt-get >/dev/null 2>&1; then
-    PM="apt install"
+    PM="apt install -y"
     elif command -v pacman >/dev/null 2>&1; then
-    PM="pacman -S"
+    PM="pacman -Syu --noconfirm"
     else
     echo "未知的 Linux 发行版或包管理器"
     exit 1
     fi
 
     # 利用 PM 变量安装软件包
-    $PM dialog git
-    if ! command -v dialog &> /dev/null; then
-        echo "安装依赖失败，滚吧"
-        exit 5
-    fi
-    ;;
-  [nN]|[nN][oO])
-    exit 0
+    $PM dialog git python-pip
     ;;
   *)
-    echo "无效的输入，操作已取消"
+    exit
     ;;
 esac
 else
