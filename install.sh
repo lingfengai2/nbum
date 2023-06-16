@@ -1,6 +1,6 @@
 #!/bin/bash
 # 检查系统是否已安装 dialog
-if ! command -v dialog > /dev/null || ! command -v python > /dev/null || ! command -v git > /dev/null; then
+if ! command -v dialog > /dev/null || ! command -v python > /dev/null || ! command -v git > /dev/null || ! command -v python-pip > /dev/null; then
    echo -e "依赖校验失败❌"
 echo -e "\033[36m你需要\033[33m安装依赖包\033[36m才能使用\033[0m"
 # 打印菜单
@@ -36,7 +36,7 @@ case $confirm in
     fi
 
     # 利用 PM 变量安装软件包
-    $PM dialog git python-pip
+    $PM dialog git python python-pip
     ;;
   *)
     exit
