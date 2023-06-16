@@ -1,12 +1,9 @@
 #!/bin/bash
-# 进入 nbum 目录并检查是否有更新
 cd $home
 cd nbum
-if ! command -v dialog > /dev/null || ! command -v catimg > /dev/null || ! command -v git > /dev/null; then
+if ! command -v dialog > /dev/null || ! command -v git > /dev/null || ! command -v python > /dev/null; then
 ./install.sh
 fi
-# 更新
-git pull origin master
 trap ctrl_c INT
 function ctrl_c() {
  # 显示一个带有“退出”和“不要”按钮的消息框，提示用户是否要退出
@@ -46,6 +43,7 @@ function show_menu() {
     计算器📟 "妈妈再也不用担心我学习了" \
     脚本选项 "查看脚本选项" \
     安卓📱专用工具 "Termux,MT的实用工具" \
+    一键更新🍻 "从gitee获取新的仓库代码" \
     退出👋 "退了就别滚回来了" )
    # 如果用户按下ESC或取消按钮，则退出程序 
    if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
@@ -58,6 +56,7 @@ function show_menu() {
      刷只因工具⌨️) show_shuaji ;;
      计算器📟) jiajian;;
      退出👋) ctrl_c ;; 
+     一键更新🍻) git pull origin master;source nbum.sh ;;
      安卓📱专用工具) show_android ;; 
      *) show_menu ;; 
    esac 
@@ -233,7 +232,7 @@ function show_shuaji() {
      --menu "请选择一个选项:" \
      20 80 12 \
      1 "ADB工具（不包含fastboot）" \
-     2 "选项2" \
+     2 "OZIP转成ZIP格式" \
      3 "选项3" \
      4 "返回主菜单")
     if [ -z "$choice_shuaji" ]; then
@@ -276,7 +275,7 @@ function show_shuaji() {
          fi
 while true; do
   # 显示输入框让用户输入要执行的adb命令
-  adb_chiose=$(dialog --inputbox "请输入要执行的adb命令（不需要加adb）：" 10 50 3>&1 1>&2 2>&3)
+  adb_chiose=$(dialog --inputbox "请输入要执行的adb命令（不需要加adb；例如：devices）：" 10 50 3>&1 1>&2 2>&3)
 
   # 如果用户取消了输入，则退出循环
   if [ $? -ne 0 ]; then
@@ -294,7 +293,11 @@ done
         show_shuaji
       fi
  ;;
-      2)  ;;
+      2) cd /sdcard
+         cd https://github.com/liyw0205/oziptozip.git
+         cd oziptozip
+         python3 -m pip install --upgrade pip
+         pip install -r requirements.txt ;;
       3)  ;;
       4)  ;;
       *)  ;;
