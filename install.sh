@@ -28,18 +28,16 @@ case $confirm in
     # 检查包管理器并设置对应变量
     if [ "$(uname -o)" == "GNU/Linux" ]; then
       if command -v apt-get >/dev/null 2>&1; then
-        PM="apt install -y dialog git python3 python3-pip"
+        apt install -y dialog git python3 python3-pip
       elif command -v pacman >/dev/null 2>&1; then
-        PM="pacman -Syu --noconfirm dialog git python-pip"
+        pacman -Syu --noconfirm dialog git python-pip
       else
         echo "未知的 Linux 发行版或包管理器"
         exit 6
       fi
     else
-      PM="apt install -y dialog git python-pip"
+      apt install -y dialog git python-pip
     fi
-    # 利用 PM 变量安装软件包
-    $PM
     ;;
   *)
     exit 6
