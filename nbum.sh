@@ -42,6 +42,7 @@ function show_menu() {
     --menu "请选择一个选项:" \
     20 80 12 \
     获取天气🖼 "今天天气怎么样？" \
+    QQ机器人🤖 "Yunzai部署与配置" \
     刷只因工具⌨️ "包含ADB,ozip转zip…" \
     计算器📟 "妈妈再也不用担心我学习了" \
     脚本选项 "查看脚本选项" \
@@ -55,12 +56,23 @@ function show_menu() {
    # 根据choice变量的值，调用不同的函数或重新显示菜单 
    case $choice in 
      脚本选项) show_more_menu ;;
-     获取天气🖼) curl "wttr.in?lang=zh"|lolcat;echo [按回车返回];read -sn1;show_menu ;;
+     获取天气🖼) curl "wttr.in?lang=zh"|lolcat
+                      echo [按回车返回]
+                      read -sn1
+                      show_menu ;;
      刷只因工具⌨️) show_shuaji ;;
+     QQ机器人🤖) show_qq ;;
      计算器📟) jiajian;;
      退出👋) ctrl_c ;; 
-     一键更新🍻) git pull origin master;source nbum.sh ;;
-     安卓📱专用工具) show_android ;; 
+     一键更新🍻) cd $home
+                     cd nbum
+                     git pull origin master;source nbum.sh ;;
+     安卓📱专用工具) if [ "$(uname -o)" == "Android" ]; then
+                           show_android
+                           else
+                           dialog --stdout --title "温馨提示" --msgbox "当前仅支持安卓" 10 40
+                           show_menu
+                           fi ;; 
      *) show_menu ;; 
    esac 
 }
@@ -295,8 +307,9 @@ done
       else
         show_shuaji
       fi
+        show_shuaji
  ;;
-      2) cd /sdcard
+      2) cd $home
          cd https://github.com/liyw0205/oziptozip.git
          cd oziptozip
          python3 -m pip install --upgrade pip
@@ -305,6 +318,61 @@ done
       4)  ;;
       *)  ;;
     esac
+}
+function show_qq() {
+# 使用dialog的menu选项，显示两个更多菜单项，并返回用户选择的标签到变量qq_choice中  
+   qq_choice=$(dialog --stdout --scrollbar \
+    --title "菜单" \
+    --menu "请选择一个选项:" \
+    0 0 12 \
+    1 "启动Yunzai" \
+    2 "安装Yunzai" \
+    3 "修复版本过低" \
+    4 "返回")
+   # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
+   if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
+      show_menu 
+   fi 
+   # 根据more_choice变量的值，调用不同的函数或重新显示更多菜单 
+   case $qq_choice in 
+     1) cd $home
+        cd Yunzai-Bot
+        node app ;;
+     2)  # 检查包管理器并设置对应变量
+        if [ "$(uname -o)" == "GNU/Linux" ]; then
+           if command -v apt-get >/dev/null 2>&1; then
+            apt install -y npm redis
+           elif command -v pacman >/dev/null 2>&1; then
+            pacman -Syu --noconfirm npm redis
+           else
+            echo "未知的 Linux 发行版或包管理器"
+            show_menu
+           fi
+       else
+        dialog --backtitle "温馨提示" --title "注意" --msgbox '无法在安卓上运行它，请安装proot或chroot容器再运行' 10 40
+        show_qq
+        fi 
+        cd $home
+        git clone --depth=1 -b main https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git
+        cd Yunzai-Bot
+        npm install pnpm -g
+        pnpm install -P
+        sleep 3
+        dialog --backtitle "安装完成" --title "确认" \
+       --yesno "是否需要运行它？" 10 30 \
+       status=$?
+      # 根据用户的选择执行不同的操作
+      if [ $status -eq 0 ]; then
+       node app
+      else
+       show_qq
+      fi ;; 
+     3) cd $home
+        cd Yunzai-Bot
+     git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login ;; 
+     4) show_menu ;; 
+     *) show_qq ;; 
+   esac
 }
 show_menu
 exit 0
