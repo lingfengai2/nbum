@@ -20,7 +20,7 @@ echo -e "$option1"
 echo -e "$footer"
 
 echo -e "您要继续吗? [\033[38;5;226;1mY/n\033[0m] "
-read -p "" confirm
+read confirm
 confirm=${confirm:-y}
 
 case $confirm in
@@ -36,6 +36,7 @@ case $confirm in
         exit 6
       fi
     else
+      pkg update
       apt install -y dialog git python-pip
     fi
     ;;
@@ -48,18 +49,38 @@ echo -e "依赖校验完成✅"
 fi
 cd $home
 if [ -d "$HOME/nbum" ]; then
-  ./nbum/nbum.sh
+  echo "仓库校验完成"
 else
   echo -e "\033[34m你需要\033[35m克隆本仓库\033[34m才能正常使用\033[0m"
   echo -e "您要继续吗? [\033[38;5;226;1mY/n\033[0m] "
-  read -p "" juxu
+  read juxu
   juxu=${juxu:-y}
   case $juxu in
   [yY]|[yY][eE][sS])
     git clone https://gitee.com/lingfengai/nbum.git
     chmod u+x nbum/nbum.sh
     chmod u+x nbum/install.sh
-    ./nbum/nbum.sh
+    # 定义要检查的 shell 配置文件
+    CONFIG_FILES=(".bashrc")
+    CONFIG_FILES2=(".zshrc")
+# 定义要添加的命令别名
+    CMD_ALIAS="alias nbum=\"$HOME/nbum/nbum.sh\""
+    # 检查别名是否存在于配置文件中
+    if grep -Fxq "$CMD_ALIAS" "$CONFIG_FILES"
+    then
+        echo -e "\033[34m你可以输入\033[33m nbum \033[34m来启动脚本\033[0m"
+    else
+        # 如果别名不存在，则将其添加到文件末尾
+        echo "$CMD_ALIAS" >> "$CONFIG_FILES"
+        echo -e "\033[34m重启终端后可以输入\033[33m nbum \033[34m来启动脚本\033[0m"
+    fi
+   if grep -Fxq "$CMD_ALIAS" "$CONFIG_FILES2"
+    then
+        echo -e "\033[34m你可以输入\033[33m nbum \033[34m来启动脚本\033[0m"
+    else
+        echo "$CMD_ALIAS" >> "$CONFIG_FILES2"
+        echo -e "\033[34m重启终端后可以输入\033[33m nbum \033[34m来启动脚本\033[0m"
+    fi
     ;;
       *)
     echo "无效的输入，操作已取消"
@@ -67,3 +88,6 @@ else
     ;;
   esac
 fi
+
+
+
