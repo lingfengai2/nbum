@@ -1,5 +1,6 @@
-<div align="center">
-<h1>牛逼的工具箱(NBUM)</h1>
+<div style="text-align: center;">
+  <h1>牛逼的工具箱(NBUM)</h1>
+</div>
 > 凌风哎QQ：
 > 3405303811
 
