@@ -1,11 +1,9 @@
 #!/bin/bash
 cd $home
 cd nbum
-if ! command -v dialog > /dev/null || ! command -v python3 > /dev/null || ! command -v git > /dev/null ; then
 ./install.sh
-   if [ $? -eq 6 ]; then
+if [ $? -eq 6 ]; then
     exit 1
-  fi
 fi
 trap ctrl_c INT
 function ctrl_c() {
@@ -254,26 +252,20 @@ function show_shuaji() {
       show_menu
     fi
     case $choice_shuaji in
-      1) dialog --backtitle "提示" --title "提示" \
-       --yesno "该功能目前只支持Ubuntu和termux" 10 30
-      # 将dialog命令的退出状态保存到变量`status`中
-      status=$?
-      # 根据用户的选择执行不同的操作
-      if [ $status -eq 0 ]; then
-              # 检查设备类型
+      1)   # 检查设备类型
          if [ "$(uname -o)" == "GNU/Linux" ]; then
          # 获取ADB路径
          adb_path=$(command -v adb)
 
          # 检查ADB是否已经安装
              if [ -z "${adb_path}" ]; then
-             echo "ADB未安装，正在安装..."
          # 安装ADB
                if [ "$(command -v apt)" != "" ]; then
                apt install adb
                else
-               echo "无法安装ADB，请安装"
-                fi
+               dialog --backtitle "温馨提示" --title "注意" --msgbox '无法在安卓和Ubuntu除外的系统上安装adb' 10 40
+               show_shuaji
+               fi
               fi
          elif [ "$(uname -o)" == "Android" ]; then
          # 获取Android Tools路径
@@ -281,12 +273,12 @@ function show_shuaji() {
 
          # 检查安卓工具是否已经安装
                    if [ -z "${android_tools_path}" ]; then
-                   echo "Android Tools未安装，正在安装..."
                    # 安装Android Tools
                    apt install android-tools
                    fi
          else
-         echo "未知设备类型"
+           dialog --backtitle "温馨提示" --title "注意" --msgbox '无法在安卓和Ubuntu除外的系统上安装adb' 10 40
+           show_shuaji
          fi
 while true; do
   # 显示输入框让用户输入要执行的adb命令
@@ -302,18 +294,19 @@ while true; do
   adb $adb_chiose
   # 提示用户按回车键继续输入命令
   read -n 1 -s -r -p "按任意键继续..."
-  printf "\n"
 done
-      else
-        show_shuaji
-      fi
-        show_shuaji
+show_shuaji
  ;;
       2) cd $home
-         cd https://github.com/liyw0205/oziptozip.git
+        if [ -d "$HOME/oziptozip" ]
+        then
          cd oziptozip
-         python3 -m pip install --upgrade pip
-         pip install -r requirements.txt ;;
+        else
+         git clone https://github.com/liyw0205/oziptozip.git
+         cd oziptozip
+        fi
+        python3 -m pip install --upgrade pip
+        pip install -r requirements.txt ;;
       3)  ;;
       4)  ;;
       *)  ;;
@@ -336,8 +329,17 @@ function show_qq() {
    # 根据more_choice变量的值，调用不同的函数或重新显示更多菜单 
    case $qq_choice in 
      1) cd $home
-        cd Yunzai-Bot
-        node app ;;
+     if [ -d "$HOME/Yunzai-Bot" ]
+     then
+      cd Yunzai-Bot
+      pnpm install -P
+      node app
+      show_qq
+     else
+      dialog --backtitle "不是你什么意思" --title "error" --msgbox '没安装你让我怎么启动？' 10 40
+      show_qq
+     fi
+     ;;
      2)  # 检查包管理器并设置对应变量
         if [ "$(uname -o)" == "GNU/Linux" ]; then
            if command -v apt-get >/dev/null 2>&1; then
