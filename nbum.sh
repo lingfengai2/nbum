@@ -308,8 +308,8 @@ show_shuaji
         python3 -m pip install --upgrade pip
         pip install -r requirements.txt ;;
       3)  ;;
-      4)  ;;
-      *)  ;;
+      4)  show_menu ;;
+      *)  show_shuaji ;;
     esac
 }
 function show_qq() {
