@@ -1,5 +1,16 @@
-#!/bin/bash
-# 检查系统是否已安装 dialog
+# 定义一些颜色常量
+R="[1;31m" G="[1;32m" Y="[1;33m" C="[1;36m" B="[1;m" O="[m"
+
+# 输出脚本信息
+SCRIPT_NAME="nbum" # 脚本名称
+SCRIPT_VERSION="1.0" # 脚本版本号
+echo "$B----------------------------------------
+    $R $SCRIPT_NAME $G安装$C脚本$O
+     $G版本号：$C $SCRIPT_VERSION $O
+----------------------------------------"
+
+#确认安装
+# 检查系统是否已安装依赖
 if ! command -v dialog > /dev/null || ! command -v python3 > /dev/null || ! command -v git > /dev/null ; then
    echo -e "依赖校验失败❌"
 echo -e "\033[36m你需要\033[33m安装依赖包\033[36m才能使用\033[0m"
@@ -47,47 +58,42 @@ esac
 else
 echo -e "依赖校验完成✅"
 fi
-cd $home
+
 if [ -d "$HOME/nbum" ]; then
   echo "仓库校验完成"
 else
   echo -e "\033[34m你需要\033[35m克隆本仓库\033[34m才能正常使用\033[0m"
-  echo -e "您要继续吗? [\033[38;5;226;1mY/n\033[0m] "
+  echo -e "目前有有以下2种git仓库可使用
+  github（国外推荐）  gitee（国内推荐）"
+  echo -e "请选择一个选项 [\033[38;5;226;1mgithub/gitee/n\033[0m] "
   read juxu
   juxu=${juxu:-y}
   case $juxu in
-  [yY]|[yY][eE][sS])
+  gitee)
     git clone https://gitee.com/lingfengai/nbum.git
-    chmod u+x nbum/nbum.sh
-    chmod u+x nbum/install.sh
-    # 定义要检查的 shell 配置文件
-    CONFIG_FILES=(".bashrc")
-    CONFIG_FILES2=(".zshrc")
-# 定义要添加的命令别名
-    CMD_ALIAS="alias nbum=\"$HOME/nbum/nbum.sh\""
-    # 检查别名是否存在于配置文件中
-    if grep -Fxq "$CMD_ALIAS" "$CONFIG_FILES"
-    then
-        echo -e "\033[34m你可以输入\033[33m nbum \033[34m来启动脚本\033[0m"
-    else
-        # 如果别名不存在，则将其添加到文件末尾
-        echo "$CMD_ALIAS" >> "$CONFIG_FILES"
-        echo -e "\033[34m重启终端后可以输入\033[33m nbum \033[34m来启动脚本\033[0m"
-    fi
-   if grep -Fxq "$CMD_ALIAS" "$CONFIG_FILES2"
-    then
-        echo -e "\033[34m你可以输入\033[33m nbum \033[34m来启动脚本\033[0m"
-    else
-        echo "$CMD_ALIAS" >> "$CONFIG_FILES2"
-        echo -e "\033[34m重启终端后可以输入\033[33m nbum \033[34m来启动脚本\033[0m"
-    fi
     ;;
-      *)
-    echo "无效的输入，操作已取消"
+  github)
+    git clone https://github.com/lingfengai2/nbum.git
+    ;;
+     *)
     exit 6
     ;;
   esac
+    chmod u+x nbum/nbum.sh
+    chmod u+x nbum/install.sh
+    echo "$Y- 安装程序... $O"
+
+    # 创建 nbum 文件
+    touch "$PREFIX/bin/nbum"
+    echo 'cd $home
+    exec ./"nbum/nbum.sh" "$@"' >> $PREFIX/bin/nbum
+
+     # 修改权限为 777
+     chmod 777 $PREFIX/bin/nbum
+     exec "$0"
+     # 输出安装完成信息
+     echo -e "
+     $G$SCRIPT_NAME$C已成功安装。
+     您现在可以使用 '$C nbum $O' 命令。$O"
 fi
-
-
 
