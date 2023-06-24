@@ -12,7 +12,7 @@ $B---------------------$O"
 
 #确认安装
 # 检查系统是否已安装依赖
-if ! command -v dialog > /dev/null || ! command -v python3 > /dev/null || ! command -v git > /dev/null ; then
+if ! command -v dialog > /dev/null || ! command -v python3 > /dev/null || ! command -v git > /dev/null || ! command -v which > /dev/null; then
    echo -e "依赖校验失败❌"
 echo -e "\033[36m你需要\033[33m安装依赖包\033[36m才能使用\033[0m"
 # 打印菜单
@@ -38,16 +38,16 @@ case $confirm in
     # 检查包管理器并设置对应变量
     if [ "$(uname -o)" == "GNU/Linux" ]; then
       if command -v apt-get >/dev/null 2>&1; then
-        apt install -y dialog git python3 python3-pip
+        apt install -y dialog git python3 python3-pip which
       elif command -v pacman >/dev/null 2>&1; then
-        pacman -Syu --noconfirm dialog git python-pip
+        pacman -Syu --noconfirm dialog git python-pip which
       else
         echo "未知的 Linux 发行版或包管理器"
         exit 6
       fi
     else
       pkg update
-      apt install -y dialog git python-pip
+      apt install -y dialog git python-pip which
     fi
     ;;
   *)
@@ -88,21 +88,23 @@ else
   esac
     chmod u+x nbum/nbum.sh
     chmod u+x nbum/install.sh
-    echo "$Y- 安装程序... $O"
-
-    # 创建 nbum 文件
-    nbumfiles=(dirname "$(which bash)")
-    touch "$nbumfiles/nbum"
-    echo 'cd $home
-    exec ./"nbum/nbum.sh" "$@"' >> $nbumfiles/nbum
-
-     # 修改权限为 777
-     chmod 777 $PREFIX/bin/nbum
-     shell="$0"
-     exec $shell
-     # 输出安装完成信息
-     echo -e "
-     $G$SCRIPT_NAME$C已成功安装。
-     您现在可以使用 '$C nbum $O' 命令。$O"
 fi
 
+    # 创建 nbum 文件
+nbumfiles=$(dirname "$(which bash)")
+if [ -z "$nbumfiles/nbum" ]; then
+  touch "$nbumfiles/nbum"
+fi
+if grep -q 'cd $home
+exec ./'nbum/nbum.sh' "$@"' $nbumfiles/nbum; then
+   echo "你可以使用 nbun 来启动脚本"
+else
+    echo "$Y- 安装程序... $O"
+    echo 'cd $home
+exec ./"nbum/nbum.sh" "$@"' >> $nbumfiles/nbum
+     # 修改权限为 777
+     chmod 777 "$nbumfiles/nbum"
+     exec $SHELL
+     # 输出安装完成信息
+     echo "你可以使用 nbun 来启动脚本"
+fi
