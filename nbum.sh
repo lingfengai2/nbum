@@ -1,7 +1,10 @@
 #!/bin/bash
 cd $home
 cd nbum
+# 检查系统是否已安装依赖
+if ! command -v dialog > /dev/null || ! command -v python3 > /dev/null || ! command -v git > /dev/null || ! command -v which > /dev/null; then
 ./install.sh
+fi
 if [ $? -eq 6 ]; then
     exit 1
 fi
@@ -39,10 +42,8 @@ function show_menu() {
     --title "菜单" \
     --menu "请选择一个选项:" \
     20 80 12 \
-    获取天气🖼 "今天天气怎么样？" \
     QQ机器人🤖 "Yunzai部署与配置" \
     刷只因工具⌨️ "包含ADB,ozip转zip…" \
-    计算器📟 "妈妈再也不用担心我学习了" \
     脚本选项 "查看脚本选项" \
     安卓📱专用工具 "Termux,MT的实用工具" \
     一键更新🍻 "从gitee获取新的仓库代码" \
@@ -54,13 +55,8 @@ function show_menu() {
    # 根据choice变量的值，调用不同的函数或重新显示菜单 
    case $choice in 
      脚本选项) show_more_menu ;;
-     获取天气🖼) curl "wttr.in?lang=zh"|lolcat
-                      echo [按回车返回]
-                      read -sn1
-                      show_menu ;;
      刷只因工具⌨️) show_shuaji ;;
      QQ机器人🤖) show_qq ;;
-     计算器📟) jiajian;;
      退出👋) ctrl_c ;; 
      一键更新🍻) cd $home
                      cd nbum
@@ -109,73 +105,6 @@ WeChat：不告诉你"
 dialog --title "脚本信息" --msgbox "$device""$nembers" 0 0
 show_more_menu
 }
-function jiajian() {
-  while true; do
-    op=$(dialog \
-      --clear \
-      --stdout \
-      --title "计算器" \
-      --menu "请选择运算类型:" \
-      0 0 0 \
-      "1" "加法" \
-      "2" "减法" \
-      "3" "乘法" \
-      "4" "除法" \
-      "5"  "返回主菜单") 
-# 如果用户选择 "取消" 或关闭了对话框，退出脚本
-  if [ -z "$op" ]; then
-  show_menu
-  fi
-    case $op in
-      "1")
-        do_addition
-        ;;
-      "2")
-        do_subtraction
-        ;;
-      "3")
-        do_multiplication
-        ;;
-      "4")
-        do_division
-        ;;
-      "5")
-        show_menu
-        ;;
-      *)
-        dialog --title "无效的选项" --msgbox "请选择一个有效的选项" 0 0
-        ;;
-    esac
-  done
-}
-# 加法
-do_addition() {
-  num1=$(dialog --stdout --title "加法" --inputbox "请输入第一个数:" 0 0)
-  num2=$(dialog --stdout --title "加法" --inputbox "请输入第二个数:" 0 0)
-  result=$(echo "$num1 + $num2" | bc)
-  dialog --title "计算结果" --msgbox "加法：$num1 + $num2 = $result" 0 0
-}
-# 减法
-do_subtraction() {
-  num1=$(dialog --stdout --title "减法" --inputbox "请输入第一个数:" 0 0)
-  num2=$(dialog --stdout --title "减法" --inputbox "请输入第二个数:" 0 0)
-  result=$(echo "$num1 - $num2" | bc)
-  dialog --title "计算结果" --msgbox "减法：$num1 - $num2 = $result" 0 0
-}
-# 乘法
-do_multiplication() {
-  num1=$(dialog --stdout --title "乘法" --inputbox "请输入第一个数:" 0 0)
-  num2=$(dialog --stdout --title "乘法" --inputbox "请输入第二个数:" 0 0)
-  result=$(echo "$num1 * $num2" | bc)
-  dialog --title "计算结果" --msgbox "乘法：$num1 * $num2 = $result" 0 0
-}
-# 除法
-do_division() {
-  num1=$(dialog --stdout --title "除法" --inputbox "请输入第一个数:" 0 0)
-  num2=$(dialog --stdout --title "除法" --inputbox "请输入第二个数:" 0 0)
-  result=$(echo "$num1 / $num2" | bc)
-  dialog --title "计算结果" --msgbox "除法：$num1 / $num2 = $result" 0 0
-}
 # 定义一个函数，用于显示更多菜单选项，并根据用户选择执行相应操作或返回到上一级菜单界面  
 function show_more_menu() {  
    # 使用dialog的menu选项，显示两个更多菜单项，并返回用户选择的标签到变量more_choice中  
@@ -198,42 +127,93 @@ function show_more_menu() {
      *) show_more_menu ;; 
    esac
 }
-# 定义一个函数，用于显示当前时间，并让用户按任意键返回到更多菜单界面
+# 定义一个函数，用于显示更新日志
 function show_change() {
-# 设置颜色化的更新日志
 changelog="
-版本 1.0.0 (2023年4月23日)
+版本 
 - 正式开始编写图形化菜单
 - newbing完成主菜单的自适应屏幕的方法
 - 脚本改名为牛逼的工具箱图形版（nb-menu）
 - 完善初始功能
-  -日历
-  -天气
+    -日历
+    -天气
 
-版本 1.1.0 (2023年4月24日)
+版本 
 - 加入计算器
-  - 加法运算
-  - 减法运算
-  - 乘法运算
-  - 除法运算
+    - 加法运算
+    - 减法运算
+    - 乘法运算
+    - 除法运算
 - 进一步完善功能
 - 加入退出确认菜单
 
-版本 1.2.0 (2022年11月1日)
+版本 
 - 修复天气无法正常输出的问题
 - 现在会检查是否安装了依赖并让用户选择安装方式
 - chatgpt完成新的主菜单适应屏幕方式
-  - 不再像newbing直接把菜单拉满屏幕
+    - 不再像newbing直接把菜单拉满屏幕
 
-版本 1.3.0 (2022年11月15日)
+版本 
 - 新增脚本信息以及更新日志（你现在看的）
 - 新增自动检查脚本更新并自动更新的功能（亿点bug）
 - 优化了代码，以提高效率
 
-版本 2.0.0 (2023年1月1日)
-- 添加了新功能，如计算器历史、复制粘贴等
-- 完全改进了用户界面
-- 修复了若干错误
+版本 
+- 添加安卓工具箱
+- 修复bug
+
+版本 Alphe gitee cs (2023/6/6)
+- 去除自动更新
+- 更改脚本名为：nbum
+-上传 Gitee
+
+版本 1.0.0 (2023/6/8)
+- 制作 Tmoe 得到的依赖安装提示
+    - 首次支持 ArchLinux 安装依赖
+    - 通过检查软件包来安装依赖
+
+版本 1.01 (2023/6/9)
+- 开启脚本自动拉取脚本
+
+版本 1.02 - 1.05 (2023/6/9)
+- 修复bug
+
+版本 1.06 - 1.10 (2023/6/10)
+- 修复bug
+
+版本 1.11 (2023/6/10)
+- 独立安装依赖功能为 install.sh 一键安装脚本
+    - 允许通过 curl 远程下载该安装脚本
+    - 包含一键拉取 Gitee 脚本
+ 
+版本 1.12 - 1.13 (2023/6/19)
+- 修复自动更新的bug
+
+版本 1.14 (2023/6/15)
+- 新增刷只因工具
+    - ADB工具安装与使用
+
+版本 1.15 (2023/6/16)
+- 去除自动更新
+- 主菜单添加一键更新
+- 刷只因工具新增OZIP转ZIP
+
+版本 1.16 - 1.18 (2023/6/16)
+- 修复bug
+
+版本 1.19 (2023/6/21)
+- 优化一键安装代码
+- 新增一键安装云崽
+
+版本 1.20 (2023/6/22)
+- 上传到 Github
+- 优化一键安装
+    - 允许从 Github 拉取脚本
+- 优化刷只因工具
+
+版本 1.21 (2023/7/11)
+- 去除查看天气功能
+- 优化更新日志
 "
 # 在对话框更新日志
 dialog --no-collapse --backtitle "更新日志" --title "计算器更新日志" --msgbox "$changelog" 25 80
@@ -306,7 +286,8 @@ show_shuaji
          cd oziptozip
         fi
         python3 -m pip install --upgrade pip
-        pip install -r requirements.txt ;;
+        pip install -r requirements.txt
+        show_shuaji ;;
       3)  ;;
       4)  show_menu ;;
       *)  show_shuaji ;;
