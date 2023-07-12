@@ -31,7 +31,7 @@ ___
 
 ## 更新日志
 
-[点我跳转](https://gitee.com/lingfengai/nbum/blob/master/%E6%9B%B4%E6%96%B0%E6%97%A5%E5%BF%97.md)
+[点我跳转](https://gitee.com/lingfengai/nbum/blob/master/update.md)
 
 ## 安装教程  
 
