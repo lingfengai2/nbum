@@ -24,26 +24,26 @@ function show_menu() {
     --title "菜单" \
     --menu "请选择一个选项:" \
     20 80 12 \
-    QQ机器人🤖 "Yunzai部署与配置" \
-    刷只因工具⌨️ "包含ADB,ozip转zip…" \
-    安卓📱专用工具 "Termux,MT的实用工具" \
-    一键更新🍻 "从gitee获取新的仓库代码" \
-    脚本选项 "查看脚本选项" \
-    退出👋 "退了就别滚回来了" )
+    1 "🤖 QQ机器人:Yunzai部署与配置" \
+    2 "💻 刷只因工具:包含ADB,ozip转zip…" \
+    3 "📱 安卓专用工具:Termux,MT的实用工具" \
+    4 "🍧 一键更新:从gitee获取新的仓库代码" \
+    5 "🌈 脚本选项:查看脚本选项" \
+    0 "👋 退出:拜拜了您嘞" )
    # 如果用户按下ESC或取消按钮，则退出程序 
    if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
      exit
    fi 
    # 根据choice变量的值，调用不同的函数或重新显示菜单 
    case $choice in 
-     脚本选项) show_more_menu ;;
-     刷只因工具⌨️) show_shuaji ;;
-     QQ机器人🤖) show_qq ;;
-     退出👋) exit ;; 
-     一键更新🍻) cd $home
+     5) show_more_menu ;;
+     2) show_shuaji ;;
+     1) show_qq ;;
+     0) exit ;; 
+     4) cd $home
                      cd nbum
                      git pull origin master;source nbum.sh ;;
-     安卓📱专用工具) if [ "$(uname -o)" == "Android" ]; then
+     3) if [ "$(uname -o)" == "Android" ]; then
                            show_android
                            else
                            dialog --stdout --title "温馨提示" --msgbox "当前仅支持安卓" 10 40
@@ -60,7 +60,7 @@ function show_android() {
      1 "一键美化" \
      2 "选项2" \
      3 "选项3" \
-     4 "返回主菜单")
+     0 "返回主菜单")
     if [ -z "$choice_android" ]; then
       show_menu
     fi
@@ -72,7 +72,7 @@ function show_android() {
          show_menu ;;
       2)  ;;
       3)  ;;
-      4) show_menu ;;
+      0) show_menu ;;
       *) show_android ;;
     esac
 }
@@ -94,18 +94,18 @@ function show_more_menu() {
     --title "菜单" \
     --menu "请选择一个选项:" \
     20 80 12 \
-    脚本信息 "作者，系统等" \
-    更新日志 "历代版本详情" \
-    返回 "顾名思义")
+    1 "脚本信息" \
+    2 "更新日志" \
+    0 "返回主菜单")
    # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
    if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
       show_menu 
    fi 
    # 根据more_choice变量的值，调用不同的函数或重新显示更多菜单 
    case $more_choice in 
-     脚本信息) show_info ;; 
-     更新日志) show_change ;; 
-     返回) show_menu ;; 
+     1) show_info ;; 
+     2) show_change ;; 
+     0) show_menu ;; 
      *) show_more_menu ;; 
    esac
 }
@@ -126,7 +126,7 @@ function show_shuaji() {
      1 "ADB工具（不包含fastboot）" \
      2 "OZIP转成ZIP格式" \
      3 "选项3" \
-     4 "返回主菜单")
+     0 "返回主菜单")
     if [ -z "$choice_shuaji" ]; then
       show_menu
     fi
@@ -188,7 +188,7 @@ show_shuaji
         pip install -r requirements.txt
         show_shuaji ;;
       3)  ;;
-      4)  show_menu ;;
+      0)  show_menu ;;
       *)  show_shuaji ;;
     esac
 }
@@ -201,7 +201,7 @@ function show_qq() {
     1 "启动Yunzai" \
     2 "安装Yunzai" \
     3 "修复版本过低" \
-    4 "返回")
+    0 "返回主菜单")
    # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
    if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
       show_menu 
@@ -252,7 +252,7 @@ function show_qq() {
      3) cd $home
         cd Yunzai-Bot
      git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login ;; 
-     4) show_menu ;; 
+     0) show_menu ;; 
      *) show_qq ;; 
    esac
 }
