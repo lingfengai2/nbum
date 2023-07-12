@@ -113,7 +113,7 @@ function show_more_menu() {
 function show_change() {
 cd $home
 cd nbum
-changelog=$(cat 更新日志.md)
+changelog=$(cat update.md)
 # 在对话框更新日志
 dialog --no-collapse --backtitle "更新日志" --title "计算器更新日志" --msgbox "$changelog" 25 80
 show_more_menu
