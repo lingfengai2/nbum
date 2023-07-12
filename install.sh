@@ -89,14 +89,14 @@ if [ -z "$nbumfiles/nbum" ]; then
   touch "$nbumfiles/nbum"
 fi
 if grep -q 'cd $home
-exec ./'nbum/nbum.sh' "$@"' $nbumfiles/nbum; then
+exec ./'nbum/nbum.sh' "$@"' $nbumfiles/nbum > /dev/null 2>&1; then
    echo "你可以使用 nbum 来启动脚本"
 else
     echo 'cd $home
 exec ./"nbum/nbum.sh" "$@"' >> $nbumfiles/nbum
      # 修改权限为 777
      chmod 777 "$nbumfiles/nbum"
-     exec $SHELL
      # 输出安装完成信息
      echo "你可以使用 nbum 来启动脚本"
+     exec $SHELL
 fi
