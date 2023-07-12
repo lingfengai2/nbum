@@ -1,15 +1,8 @@
 #!/bin/bash
-# 定义一些颜色常量
-R="[1;31m" G="[1;32m" Y="[1;33m" C="[1;36m" B="[1;m" O="[m"
 
 # 输出脚本信息
 SCRIPT_NAME="nbum" # 脚本名称
 SCRIPT_VERSION="1.0" # 脚本版本号
-echo "$B---------------------
-$R $SCRIPT_NAME $G安装$C脚本$O
-$G版本号：$C $SCRIPT_VERSION $O
-$B---------------------$O"
-
 #确认安装
 # 检查系统是否已安装依赖
 if ! command -v dialog > /dev/null || ! command -v python3 > /dev/null || ! command -v git > /dev/null || ! command -v which > /dev/null; then
@@ -97,14 +90,13 @@ if [ -z "$nbumfiles/nbum" ]; then
 fi
 if grep -q 'cd $home
 exec ./'nbum/nbum.sh' "$@"' $nbumfiles/nbum; then
-   echo "你可以使用 nbun 来启动脚本"
+   echo "你可以使用 nbum 来启动脚本"
 else
-    echo "$Y- 安装程序... $O"
     echo 'cd $home
 exec ./"nbum/nbum.sh" "$@"' >> $nbumfiles/nbum
      # 修改权限为 777
      chmod 777 "$nbumfiles/nbum"
      exec $SHELL
      # 输出安装完成信息
-     echo "你可以使用 nbun 来启动脚本"
+     echo "你可以使用 nbum 来启动脚本"
 fi
