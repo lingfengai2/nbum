@@ -39,8 +39,7 @@ case $confirm in
         exit 6
       fi
     else
-      pkg update
-      apt install -y dialog git python-pip which
+      pkg install -y dialog git python-pip which
     fi
     ;;
   *)
