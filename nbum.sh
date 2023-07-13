@@ -34,7 +34,7 @@ if [ "$system_type" == "GNU/Linux" ]; then
         0 "👋 退出:拜拜了您嘞" )
 else
     choice=$(dialog --stdout --scrollbar \
-        --title "欢迎使用 NBUM $(uname -s) 版本" \
+        --title "欢迎使用 NBUM $(uname -o) 版本" \
         --menu "注意：不同系统菜单操作有所不同" \
         20 80 12 \
         2 "💻 刷只因工具:包含ADB,ozip转zip…" \
