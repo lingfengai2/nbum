@@ -53,7 +53,7 @@ fi
      2) show_shuaji ;;
      1) show_qq ;;
      0) exit ;; 
-     4) cd $home;cd nbum;lgit pull origin master;source nbum.sh ;;
+     4) cd $home;cd nbum;git pull origin master;source nbum.sh ;;
      3) show_android ;; 
      *) show_menu ;; 
    esac 
