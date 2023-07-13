@@ -19,17 +19,30 @@ sleep 0.5
 } | dialog --gauge "正在释放脚本" 10 36
 # 定义一个函数，用于显示菜单选项，并根据用户选择执行相应操作或退出程序
 function show_menu() {
-  # 使用dialog的menu选项，显示三个菜单项，并返回用户选择的标签到变量choice中
-  choice=$(dialog --stdout --scrollbar \
-    --title "菜单" \
-    --menu "请选择一个选项:" \
-    20 80 12 \
-    1 "🤖 QQ机器人:Yunzai部署与配置" \
-    2 "💻 刷只因工具:包含ADB,ozip转zip…" \
-    3 "📱 安卓专用工具:Termux,MT的实用工具" \
-    4 "🍧 一键更新:从gitee获取新的仓库代码" \
-    5 "🌈 脚本选项:查看脚本选项" \
-    0 "👋 退出:拜拜了您嘞" )
+  # 使用dialog的menu选项，显示菜单项，并返回用户选择的标签到变量choice中
+system_type=$(uname -s)
+
+if [ "$system_type" == "Linux" ]; then
+    choice=$(dialog --stdout --scrollbar \
+        --title "欢迎使用 NBUM $(uname -s) 版本" \
+        --menu "注意：不同系统菜单操作有所不同" \
+        20 80 12 \
+        1 "🤖 QQ机器人:Yunzai部署与配置" \
+        2 "💻 刷只因工具:包含ADB,ozip转zip…" \
+        4 "🍧 一键更新:从gitee获取新的仓库代码" \
+        5 "🌈 脚本选项:查看脚本选项" \
+        0 "👋 退出:拜拜了您嘞" )
+else
+    choice=$(dialog --stdout --scrollbar \
+        --title "欢迎使用 NBUM $(uname -s) 版本" \
+        --menu "注意：不同系统菜单操作有所不同" \
+        20 80 12 \
+        2 "💻 刷只因工具:包含ADB,ozip转zip…" \
+        3 "📱 安卓专用工具:Termux,MT的实用工具" \
+        4 "🍧 一键更新:从gitee获取新的仓库代码" \
+        5 "🌈 脚本选项:查看脚本选项" \
+        0 "👋 退出:拜拜了您嘞" )
+fi
    # 如果用户按下ESC或取消按钮，则退出程序 
    if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
      exit
@@ -40,15 +53,8 @@ function show_menu() {
      2) show_shuaji ;;
      1) show_qq ;;
      0) exit ;; 
-     4) cd $home
-                     cd nbum
-                     git pull origin master;source nbum.sh ;;
-     3) if [ "$(uname -o)" == "Android" ]; then
-                           show_android
-                           else
-                           dialog --stdout --title "温馨提示" --msgbox "当前仅支持安卓" 10 40
-                           show_menu
-                           fi ;; 
+     4) cd $home;cd nbum;lgit pull origin master;source nbum.sh ;;
+     3) show_android ;; 
      *) show_menu ;; 
    esac 
 }
