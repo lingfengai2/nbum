@@ -23,9 +23,17 @@ function show_menu() {
 system_type=$(uname -o)
 
 if [ "$system_type" == "GNU/Linux" ]; then
+    if [ -e "/etc/os-release" ]; then
+        source /etc/os-release
+        distro="$NAME$VERSION"
+    else
+        echo "释放脚本时出现错误（无法回去系统信息）"
+        exit 1
+    fi
     choice=$(dialog --stdout --scrollbar \
-        --title "欢迎使用 NBUM $(uname -s) 版本" \
-        --menu "注意：不同系统菜单操作有所不同" \
+        --title "NBUM-Tools running on $distro" \
+        --menu "Welome to use NBUM工具箱，使用 nbum 来启动工具箱
+Please 选择一个选项后按下 enter" \
         20 80 12 \
         1 "🤖 QQ机器人:Yunzai部署与配置" \
         2 "💻 刷只因工具:包含ADB,ozip转zip…" \
@@ -63,7 +71,7 @@ function show_android() {
      choice_android=$(dialog --stdout --scrollbar --title "Android工具" \
      --menu "请选择一个选项:" \
      20 80 12 \
-     1 "一键美化" \
+     1 "🍭 一键美化:让你的终端变得更漂亮" \
      2 "选项2" \
      3 "选项3" \
      0 "返回主菜单")
@@ -100,9 +108,10 @@ function show_more_menu() {
     --title "菜单" \
     --menu "请选择一个选项:" \
     20 80 12 \
-    1 "脚本信息" \
-    2 "更新日志" \
-    0 "返回主菜单")
+    1 "ℹ️ 脚本信息:毫无意义的功能" \
+    2 "💾 更新日志:更新了个寂寞🌚" \
+    3 "🤔 疑难杂症:不懂就看看" \
+    0 "🔙 返回:滚回主菜单")
    # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
    if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
       show_menu 
@@ -111,6 +120,7 @@ function show_more_menu() {
    case $more_choice in 
      1) show_info ;; 
      2) show_change ;; 
+     3)  ;;
      0) show_menu ;; 
      *) show_more_menu ;; 
    esac
