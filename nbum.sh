@@ -20,9 +20,9 @@ sleep 0.5
 # 定义一个函数，用于显示菜单选项，并根据用户选择执行相应操作或退出程序
 function show_menu() {
   # 使用dialog的menu选项，显示菜单项，并返回用户选择的标签到变量choice中
-system_type=$(uname -s)
+system_type=$(uname -o)
 
-if [ "$system_type" == "Linux" ]; then
+if [ "$system_type" == "GNU/Linux" ]; then
     choice=$(dialog --stdout --scrollbar \
         --title "欢迎使用 NBUM $(uname -s) 版本" \
         --menu "注意：不同系统菜单操作有所不同" \
