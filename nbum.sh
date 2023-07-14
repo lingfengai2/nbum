@@ -24,7 +24,16 @@ LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse origin/master)
 } | dialog --gauge "检查版本更新，当前版本: $version" 10 36
 # 如果有新的更新，则拉取最新的代码并重新加载代码
-if [ "$LOCAL" != "$REMOTE" ]; then
+if [ "$LOCAL" == "$REMOTE" ]; then
+{
+    for ((x=1; x<=10; x++))
+    do
+        let percent=(x*5)+50
+        echo $percent
+        sleep 0.05
+    done
+} | dialog --gauge "已是最新版本，当前版本: $version" 10 36
+else
 {
     # 从 Gitee 仓库获取版本号
     git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" | awk -F '"' '/version/ { print $2 }')
@@ -37,20 +46,11 @@ if [ "$LOCAL" != "$REMOTE" ]; then
         echo $percent
         sleep 0.1
     done
-} | dialog --gauge "发现更新: $git_version" 10 36
+} | dialog --gauge "发现更新，最新版本: $git_version" 10 36
     echo "更新完成"
     sleep 1
     source nbum.sh
 fi
-
-{
-    for ((x=1; x<=10; x++))
-    do
-        let percent=(x*5)+50
-        echo $percent
-        sleep 0.05
-    done
-} | dialog --gauge "已是最新版本，当前版本: $version" 10 36
 
 # 定义一个函数，用于显示菜单选项，并根据用户选择执行相应操作或退出程序
 function show_menu() {
