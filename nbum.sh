@@ -11,6 +11,11 @@ fi
 # 先进入到代码仓库的目录
 cd $home;cd nbum
 version=$(grep -Eo 'version="[0-9.]+"' update.md | cut -d'"' -f2)
+git fetch -q origin master
+LOCAL=$(git rev-parse HEAD)
+REMOTE=$(git rev-parse origin/master)
+# 从 Gitee 仓库获取版本号
+git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" | awk -F '"' '/version/ { print $2 }')
 {
 # 检查是否有新的更新
 for((x=1; x<=10; x++))
@@ -19,9 +24,6 @@ for((x=1; x<=10; x++))
     echo $percent
     sleep 0.1
   done
-git fetch -q origin master
-LOCAL=$(git rev-parse HEAD)
-REMOTE=$(git rev-parse origin/master)
 } | dialog --gauge "检查版本更新，当前版本: $version" 10 36
 # 如果有新的更新，则拉取最新的代码并重新加载代码
 if [ "$LOCAL" == "$REMOTE" ]; then
@@ -32,11 +34,9 @@ if [ "$LOCAL" == "$REMOTE" ]; then
         echo $percent
         sleep 0.05
     done
-} | dialog --gauge "已是最新版本，当前版本: $version" 10 36
+} | dialog --gauge "已是最新版本，云端版本: $git_version" 10 36
 else
 {
-    # 从 Gitee 仓库获取版本号
-    git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" | awk -F '"' '/version/ { print $2 }')
     # 拉取最新的代码
     git pull origin master
     # 重新加载代码
@@ -44,7 +44,7 @@ else
     do
         let percent=(x*5)+50
         echo $percent
-        sleep 0.1
+        sleep 0.05
     done
 } | dialog --gauge "发现更新，最新版本: $git_version" 10 36
     echo "更新完成"
@@ -60,7 +60,7 @@ if [ "$(uname -o)" == "GNU/Linux" ]; then
         source /etc/os-release
         distro="$NAME$VERSION"
     else
-        echo "释放脚本时出现错误（无法获取系统信息）"
+        echo "错误：无法获取系统信息"
         exit 1
     fi
     choice=$(dialog --stdout --scrollbar \
