@@ -70,6 +70,7 @@ Please 选择一个选项后按下 enter" \
         20 80 12 \
         1 "🤖 QQ机器人:Yunzai部署与配置" \
         2 "💻 刷只因工具:包含ADB,ozip转zip…" \
+        ? "该功能不适用此系统，已隐藏" \
         4 "🌈 脚本选项:查看脚本选项" \
         0 "👋 退出:拜拜了您嘞" )
 else
@@ -78,6 +79,7 @@ else
         --menu "Welome to use NBUM工具箱，使用 nbum 来启动工具箱
 Please 选择一个选项后按下 enter" \
         20 80 12 \
+        ? "该功能不适用此系统，已隐藏" \
         2 "💻 刷只因工具:包含ADB,ozip转zip…" \
         3 "📱 安卓专用工具:Termux,MT的实用工具" \
         4 "🌈 脚本选项:查看脚本选项" \
@@ -94,6 +96,8 @@ fi
      1) show_qq ;;
      0) exit ;; 
      3) show_android ;; 
+     ?) dialog --title "功能不适用" --msgbox '功能已隐藏，详见脚本选项/疑难杂症' 10 40
+        show_menu ;; 
      *) show_menu ;; 
    esac 
 }
