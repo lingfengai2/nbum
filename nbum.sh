@@ -31,25 +31,25 @@ if [ "$LOCAL" != "$REMOTE" ]; then
     # 拉取最新的代码
     git pull origin master
     # 重新加载代码
-    for((x=1; x<=10; x++))
+    for ((x=1; x<=10; x++))
     do
-      let percent=(x*5)+50
-      echo $percent
-      sleep 0.1
+        let percent=(x*5)+50
+        echo $percent
+        sleep 0.1
     done
 } | dialog --gauge "发现更新: $git_version" 10 36
-    echo 100 | dialog --gauge "更新完成，即将重新加载脚本" 10 36
+    echo "更新完成"
     sleep 1
     source nbum.sh
 else
 {
-    for((x=1; x<=10; x++))
+    for ((x=1; x<=10; x++))
     do
-      let percent=(x*5)+50
-      echo $percent
-      sleep 0.05
+        let percent=(x*5)+50
+        echo $percent
+        sleep 0.05
     done
-} | dialog --gauge "已是最新版本" 10 36
+} | dialog --gauge "已是最新版本，当前版本: $version" 10 36
 fi
 
 # 定义一个函数，用于显示菜单选项，并根据用户选择执行相应操作或退出程序
