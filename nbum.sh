@@ -11,20 +11,20 @@ fi
 # 先进入到代码仓库的目录
 cd $home;cd nbum
 version=$(grep -Eo 'version="[0-9.]+"' update.md | cut -d'"' -f2)
-git fetch -q origin master
-LOCAL=$(git rev-parse HEAD)
-REMOTE=$(git rev-parse origin/master)
-# 从 Gitee 仓库获取版本号
-git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" | awk -F '"' '/version/ { print $2 }')
 {
 # 检查是否有新的更新
 for((x=1; x<=10; x++))
   do
     let percent=(x*5)
     echo $percent
-    sleep 0.1
+    sleep 0.05
   done
 } | dialog --gauge "检查版本更新，当前版本: $version" 10 36
+git fetch -q origin master
+LOCAL=$(git rev-parse HEAD)
+REMOTE=$(git rev-parse origin/master)
+# 从 Gitee 仓库获取版本号
+git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" | awk -F '"' '/version/ { print $2 }')
 # 如果有新的更新，则拉取最新的代码并重新加载代码
 if [ "$LOCAL" == "$REMOTE" ]; then
 {
@@ -32,24 +32,27 @@ if [ "$LOCAL" == "$REMOTE" ]; then
     do
         let percent=(x*5)+50
         echo $percent
-        sleep 0.05
+        sleep 0.01
     done
 } | dialog --gauge "已是最新版本，云端版本: $git_version" 10 36
 else
-{
     # 拉取最新的代码
-    git pull origin master
+    if git pull origin master &> /dev/null; then
+{
     # 重新加载代码
     for ((x=1; x<=10; x++))
     do
         let percent=(x*5)+50
         echo $percent
-        sleep 0.05
+        sleep 0.01
     done
 } | dialog --gauge "发现更新，最新版本: $git_version" 10 36
-    echo "更新完成"
+    echo 100 | dialog --gauge "更新完成" 10 36
     sleep 1
     source nbum.sh
+    else
+    dialog --title "错误" --msgbox '更新失败，请尝试手动更新或重新安装' 10 40
+    fi
 fi
 
 # 定义一个函数，用于显示菜单选项，并根据用户选择执行相应操作或退出程序
