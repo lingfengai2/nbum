@@ -10,27 +10,50 @@ if [ $? -eq 6 ]; then
 fi
 # 先进入到代码仓库的目录
 cd $home;cd nbum
+version=$(grep -Eo 'version="[0-9.]+"' update.md | cut -d'"' -f2)
+{
 # 检查是否有新的更新
-git fetch origin master
+for((x=1; x<=10; x++))
+  do
+    let percent=(x*5)
+    echo $percent
+    sleep 0.1
+  done
+git fetch -q origin master
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse origin/master)
+} | dialog --gauge "检查版本更新，当前版本: $version" 10 36
 # 如果有新的更新，则拉取最新的代码并重新加载代码
 if [ "$LOCAL" != "$REMOTE" ]; then
+{
+    # 从 Gitee 仓库获取 JSON 数据
+    json_data=$(curl -s "https://gitee.com/nbum/raw/master/update.md")
+    # 解析 JSON 数据，提取版本号字段
+    git_version=$(echo "$json_data" | awk -F '"' '/version/ { print $4 }')
     # 拉取最新的代码
     git pull origin master
     # 重新加载代码
-    echo "已拉取最新的代码并重新加载"
+    for((x=1; x<=10; x++))
+    do
+      let percent=(x*5)+50
+      echo $percent
+      sleep 0.1
+    done
+} | dialog --gauge "发现更新: $git_version" 10 36
+    echo 100 | dialog --gauge "更新完成，即将重新加载脚本" 10 36
+    sleep 1
     source nbum.sh
-fi
-sleep 0.5
+else
 {
-     for((x=1;x<=10;x++))
-     do
-        let X=10*x
-        echo $X
-        sleep 0.1
-     done
-} | dialog --gauge "正在释放脚本" 10 36
+    for((x=1; x<=10; x++))
+    do
+      let percent=(x*5)+50
+      echo $percent
+      sleep 0.05
+    done
+} | dialog --gauge "已是最新版本" 10 36
+fi
+
 # 定义一个函数，用于显示菜单选项，并根据用户选择执行相应操作或退出程序
 function show_menu() {
   # 使用dialog的menu选项，显示菜单项，并返回用户选择的标签到变量choice中
@@ -121,6 +144,7 @@ function show_more_menu() {
     1 "ℹ️ 脚本信息:毫无意义的功能" \
     2 "💾 更新日志:更新了个寂寞🌚" \
     3 "🤔 疑难杂症:不懂就看看" \
+    4 "🍧 *°▽°*update更新" \
     0 "🔙 返回:滚回主菜单")
    # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
    if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
@@ -131,6 +155,7 @@ function show_more_menu() {
      1) show_info ;; 
      2) show_change ;; 
      3) show_yinan ;;
+     4) cd $home;cd nbum;git pull origin master;echo "完成，更新将在下一次启动脚本后生效（等待5秒）";sleep 5;show_more_menu ;;
      0) show_menu ;; 
      *) show_more_menu ;; 
    esac
