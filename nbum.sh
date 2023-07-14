@@ -8,6 +8,19 @@ fi
 if [ $? -eq 6 ]; then
     exit 1
 fi
+# 先进入到代码仓库的目录
+cd $home;cd nbum
+# 检查是否有新的更新
+LOCAL=$(git rev-parse HEAD)
+REMOTE=$(git rev-parse origin/master)
+# 如果有新的更新，则拉取最新的代码并重新加载代码
+if [ "$LOCAL" != "$REMOTE" ]; then
+    # 拉取最新的代码
+    git pull origin master
+    # 重新加载代码
+    echo "已拉取最新的代码并重新加载"
+    source nbum.sh
+fi
 sleep 0.5
 {
      for((x=1;x<=10;x++))
@@ -20,14 +33,12 @@ sleep 0.5
 # 定义一个函数，用于显示菜单选项，并根据用户选择执行相应操作或退出程序
 function show_menu() {
   # 使用dialog的menu选项，显示菜单项，并返回用户选择的标签到变量choice中
-system_type=$(uname -o)
-
-if [ "$system_type" == "GNU/Linux" ]; then
+if [ "$(uname -o)" == "GNU/Linux" ]; then
     if [ -e "/etc/os-release" ]; then
         source /etc/os-release
         distro="$NAME$VERSION"
     else
-        echo "释放脚本时出现错误（无法回去系统信息）"
+        echo "释放脚本时出现错误（无法获取系统信息）"
         exit 1
     fi
     choice=$(dialog --stdout --scrollbar \
@@ -37,8 +48,7 @@ Please 选择一个选项后按下 enter" \
         20 80 12 \
         1 "🤖 QQ机器人:Yunzai部署与配置" \
         2 "💻 刷只因工具:包含ADB,ozip转zip…" \
-        4 "🍧 一键更新:从gitee获取新的仓库代码" \
-        5 "🌈 脚本选项:查看脚本选项" \
+        4 "🌈 脚本选项:查看脚本选项" \
         0 "👋 退出:拜拜了您嘞" )
 else
     choice=$(dialog --stdout --scrollbar \
@@ -48,8 +58,7 @@ Please 选择一个选项后按下 enter" \
         20 80 12 \
         2 "💻 刷只因工具:包含ADB,ozip转zip…" \
         3 "📱 安卓专用工具:Termux,MT的实用工具" \
-        4 "🍧 一键更新:从gitee获取新的仓库代码" \
-        5 "🌈 脚本选项:查看脚本选项" \
+        4 "🌈 脚本选项:查看脚本选项" \
         0 "👋 退出:拜拜了您嘞" )
 fi
    # 如果用户按下ESC或取消按钮，则退出程序 
@@ -58,11 +67,10 @@ fi
    fi 
    # 根据choice变量的值，调用不同的函数或重新显示菜单 
    case $choice in 
-     5) show_more_menu ;;
+     4) show_more_menu ;;
      2) show_shuaji ;;
      1) show_qq ;;
      0) exit ;; 
-     4) cd $home;cd nbum;git pull origin master;source nbum.sh ;;
      3) show_android ;; 
      *) show_menu ;; 
    esac 
@@ -121,15 +129,14 @@ function show_more_menu() {
    case $more_choice in 
      1) show_info ;; 
      2) show_change ;; 
-     3)  ;;
+     3) show_yinan ;;
      0) show_menu ;; 
      *) show_more_menu ;; 
    esac
 }
 # 定义一个函数，用于显示更新日志
 function show_change() {
-cd $home
-cd nbum
+cd $home;cd nbum
 changelog=$(cat update.md)
 # 在对话框更新日志
 dialog --no-collapse --backtitle "更新日志" --title "计算器更新日志" --msgbox "$changelog" 25 80
@@ -166,7 +173,6 @@ function show_shuaji() {
          elif [ "$(uname -o)" == "Android" ]; then
          # 获取Android Tools路径
          android_tools_path=$(command -v adb)
-
          # 检查安卓工具是否已经安装
                    if [ -z "${android_tools_path}" ]; then
                    # 安装Android Tools
@@ -218,6 +224,7 @@ function show_qq() {
     1 "启动Yunzai" \
     2 "安装Yunzai" \
     3 "修复版本过低" \
+    4 "卸载Yunzai" \
     0 "返回主菜单")
    # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
    if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
@@ -245,33 +252,41 @@ function show_qq() {
             pacman -Syu --noconfirm npm redis
            else
             echo "未知的 Linux 发行版或包管理器"
-            show_menu
+            show_qq
            fi
-       else
-        dialog --backtitle "温馨提示" --title "注意" --msgbox '无法在安卓上运行它，请安装proot或chroot容器再运行' 10 40
-        show_qq
         fi 
         cd $home
         git clone --depth=1 -b main https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git
         cd Yunzai-Bot
         npm install pnpm -g
         pnpm install -P
-        sleep 3
+        sleep 2.5
         dialog --backtitle "安装完成" --title "确认" \
        --yesno "是否需要运行它？" 10 30 \
        status=$?
       # 根据用户的选择执行不同的操作
       if [ $status -eq 0 ]; then
        node app
+       sleep 1
+       show_qq
       else
        show_qq
       fi ;; 
-     3) cd $home
-        cd Yunzai-Bot
+     3) cd $home;cd Yunzai-Bot
      git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login ;; 
      0) show_menu ;; 
      *) show_qq ;; 
    esac
+}
+function show_yinan() {
+yinan="
+1️⃣QAQ  为什么主菜单少了一些选项
+because：
+一些功能是针对不同系统制作的，
+其他系统无法使用
+所以进行了隐藏"
+dialog --no-collapse --backtitle "小朋友你是否有很多问号" --title "疑难杂症大全" --msgbox "$yinan" 25 80
+show_more_menu
 }
 show_menu
 exit 0
