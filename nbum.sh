@@ -11,12 +11,11 @@ fi
 # 先进入到代码仓库的目录
 cd $home;cd nbum
 # 检查是否有新的更新
+git fetch origin master
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse origin/master)
 # 如果有新的更新，则拉取最新的代码并重新加载代码
 if [ "$LOCAL" != "$REMOTE" ]; then
-echo "nbum加载中"
-else
     # 拉取最新的代码
     git pull origin master
     # 重新加载代码
