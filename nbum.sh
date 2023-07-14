@@ -26,10 +26,8 @@ REMOTE=$(git rev-parse origin/master)
 # 如果有新的更新，则拉取最新的代码并重新加载代码
 if [ "$LOCAL" != "$REMOTE" ]; then
 {
-    # 从 Gitee 仓库获取 JSON 数据
-    json_data=$(curl -s "https://gitee.com/nbum/raw/master/update.md")
-    # 解析 JSON 数据，提取版本号字段
-    git_version=$(echo "$json_data" | awk -F '"' '/version/ { print $4 }')
+    # 从 Gitee 仓库获取版本号
+    git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" | awk -F '"' '/version/ { print $2 }')
     # 拉取最新的代码
     git pull origin master
     # 重新加载代码
@@ -66,7 +64,7 @@ if [ "$(uname -o)" == "GNU/Linux" ]; then
         exit 1
     fi
     choice=$(dialog --stdout --scrollbar \
-        --title "NBUM-Tools running on $distro" \
+        --title "NBUM-Tools $version running on $distro" \
         --menu "Welome to use NBUM工具箱，使用 nbum 来启动工具箱
 Please 选择一个选项后按下 enter" \
         20 80 12 \
@@ -76,7 +74,7 @@ Please 选择一个选项后按下 enter" \
         0 "👋 退出:拜拜了您嘞" )
 else
     choice=$(dialog --stdout --scrollbar \
-        --title "欢迎使用 NBUM $(uname -o) 版本" \
+        --title "NBUM-Tools $version running on $(uname -o)" \
         --menu "Welome to use NBUM工具箱，使用 nbum 来启动工具箱
 Please 选择一个选项后按下 enter" \
         20 80 12 \
