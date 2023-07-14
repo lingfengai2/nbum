@@ -273,7 +273,8 @@ function show_qq() {
        show_qq
       fi ;; 
      3) cd $home;cd Yunzai-Bot
-     git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login ;; 
+     git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login ;;
+     4) cd $home;rm -rf Yunzai-Bot ;;
      0) show_menu ;; 
      *) show_qq ;; 
    esac
