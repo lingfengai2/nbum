@@ -47,7 +47,7 @@ else
         sleep 0.01
     done
 } | dialog --gauge "发现更新，最新版本: $git_version" 10 36
-    dialog --title "更新公告" --msgbox '试运行，还没做好（滑稽）回车后重载脚本' 20 60
+    dialog --title "提示" --msgbox '更新完成，回车后重载脚本' 10 40
     sleep 1
     source nbum.sh
     else
@@ -67,7 +67,7 @@ ctrlc() {
     case $choice_ctrlc in
         1) $current ;;
         2) show_menu ;;
-        3)cd $home;cd nbum;source nbum.sh ;;
+        3) cd $home;cd nbum;source nbum.sh ;;
         4) exit 0 ;;
         *) ctrlc ;;
     esac
@@ -92,8 +92,9 @@ Please 选择一个选项后按下 enter" \
         20 80 12 \
         1 "🤖 QQ机器人:Yunzai部署与配置" \
         2 "💻 刷只因工具:包含ADB,ozip转zip…" \
-        ? "该功能不适用此系统，已隐藏" \
-        4 "🌈 脚本选项:查看脚本选项" \
+        ? "🍏 该功能不适用此系统，已隐藏" \
+        4 "🧊 Tmoe:宇宙无敌的容器管理器" \
+        5 "🌈 脚本选项:查看脚本选项" \
         0 "👋 退出:拜拜了您嘞" )
 else
     choice=$(dialog --stdout --scrollbar \
@@ -101,10 +102,11 @@ else
         --menu "Welome to use NBUM工具箱，使用 nbum 来启动工具箱
 Please 选择一个选项后按下 enter" \
         20 80 12 \
-        ? "该功能不适用此系统，已隐藏" \
+        ? "🍎 该功能不适用此系统，已隐藏" \
         2 "💻 刷只因工具:包含ADB,ozip转zip…" \
-        3 "📱 安卓专用工具:Termux,MT的实用工具" \
-        4 "🌈 脚本选项:查看脚本选项" \
+        3 "📱 安卓专用工具:安卓的实用工具" \
+        4 "🧊 Tmoe:宇宙无敌的容器管理器" \
+        5 "🌈 脚本选项:查看脚本选项" \
         0 "👋 退出:拜拜了您嘞" )
 fi
    # 如果用户按下ESC或取消按钮，则退出程序 
@@ -113,11 +115,12 @@ fi
    fi 
    # 根据choice变量的值，调用不同的函数或重新显示菜单 
    case $choice in 
-     4) show_more_menu ;;
+     5) show_more_menu ;;
      2) show_shuaji ;;
      1) show_qq ;;
      0) exit ;; 
      3) show_android ;; 
+     4) . <(curl -L gitee.com/mo2/linux/raw/2/2) ;; 
      ?) dialog --title "功能不适用" --msgbox '功能已隐藏，详见脚本选项/疑难杂症' 10 40
         show_menu ;; 
      *) show_menu ;; 
@@ -151,7 +154,6 @@ current="show_android"
 }
 # 定义一个函数，用于显示设备信息和联系方式，并让用户按任意键返回到菜单界面  
 function show_info() {
-current="show_info"
 # 使用echo命令输出手机信息
 device="$(neofetch --stdout | sed 's/$$/\r/' | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' | sed 's/\\n/\n/g')"
 nembers="
@@ -172,6 +174,7 @@ current="show_more_menu"
     1 "ℹ️  脚本信息:毫无意义的功能" \
     2 "💾 更新日志:更新了个寂寞🌚" \
     3 "🤔 疑难杂症:不懂就看看" \
+    4 "⚡ 前往gitee nbum详情页" \
     4 "🍧 *°▽°*update更新" \
     0 "🔙 返回:滚回主菜单")
    # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
@@ -183,7 +186,8 @@ current="show_more_menu"
      1) show_info ;; 
      2) show_change ;; 
      3) show_yinan ;;
-     4) cd $home;cd nbum;git pull origin master;echo "完成，更新将在下一次启动脚本后生效（等待5秒）";sleep 5;show_more_menu ;;
+     4) am start -a android.intent.action.VIEW -d "https://gitee.com/lingfengai/nbum";echo -e "回车键返回";read -sn1;show_more_menu ;; 
+     5) cd $home;cd nbum;git pull origin master;echo "完成，即将重载脚本";sleep 5;source nbum.sh;;
      0) show_menu ;; 
      *) show_more_menu ;; 
    esac
@@ -202,8 +206,8 @@ function show_shuaji() {
 current="show_shuaji"
      choice_shuaji=$(dialog --stdout --scrollbar --title "刷只因工具" \
      --menu "请选择一个选项:" \
-     20 80 12 \
-     1 "ADB工具（不包含fastboot）" \
+     0 0 12 \
+     1 "ADB工具" \
      2 "OZIP转成ZIP格式" \
      3 "选项3" \
      0 "返回主菜单")
@@ -220,7 +224,7 @@ current="show_shuaji"
              if [ -z "${adb_path}" ]; then
          # 安装ADB
                if [ "$(command -v apt)" != "" ]; then
-               apt install adb
+               apt install -y adb
                else
                dialog --backtitle "温馨提示" --title "注意" --msgbox '无法在安卓和Ubuntu除外的系统上安装adb' 10 40
                show_shuaji
@@ -232,29 +236,13 @@ current="show_shuaji"
          # 检查安卓工具是否已经安装
                    if [ -z "${android_tools_path}" ]; then
                    # 安装Android Tools
-                   apt install android-tools
+                   apt install -y android-tools
                    fi
          else
            dialog --backtitle "温馨提示" --title "注意" --msgbox '无法在安卓和Ubuntu除外的系统上安装adb' 10 40
            show_shuaji
          fi
-while true; do
-  # 显示输入框让用户输入要执行的adb命令
-  adb_chiose=$(dialog --inputbox "请输入要执行的adb命令（不需要加adb；例如：devices）：" 10 50 3>&1 1>&2 2>&3)
-
-  # 如果用户取消了输入，则退出循环
-  if [ $? -ne 0 ]; then
-    show_shuaji
-    break
-  fi
-  
-  # 使用adb执行用户输入的命令
-  adb $adb_chiose
-  # 提示用户按回车键继续输入命令
-  read -n 1 -s -r -p "按任意键继续..."
-done
-show_shuaji
- ;;
+         show_adbtools ;;
       2) cd $home
         if [ -d "$HOME/oziptozip" ]
         then
@@ -270,6 +258,38 @@ show_shuaji
       0)  show_menu ;;
       *)  show_shuaji ;;
     esac
+}
+show_adbtools() {
+current="show_adbtools"
+# 使用dialog的menu选项，显示两个更多菜单项，并返回用户选择的标签到变量qq_choice中  
+   adbtools_choice=$(dialog --stdout --scrollbar \
+    --title "ADB-Tools" \
+    --menu "请选择一个选项:" \
+    0 0 12 \
+    1 "连接手机" \
+    2 "检查设备(检查USBADB连接)" \
+    3 "修复安卓12(signal 9)" \
+    4 "卸载ADB" \
+    0 "返回主菜单")
+   # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
+   if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
+      show_shuaji
+   fi 
+   # 根据more_choice变量的值，调用不同的函数或重新显示更多菜单 
+   case $adbtools_choice in 
+     1)  ;;
+     2)  ;;
+     3)  ;;
+     4)
+     if [ "$(uname -o)" == "GNU/Linux" ]; then
+        apt remove -y adb
+     elif [ "$(uname -o)" == "Android" ]; then
+        apt remove -y android_tools
+     fi
+     show_shuaji
+     ;;
+     0) show_shuaji ;;
+   esac
 }
 function show_qq() {
 current="show_qq"
@@ -322,7 +342,7 @@ current="show_qq"
           0) node app ;;
           1) show_qq ;;
         esac
- ;; 
+     ;; 
      3) cd $home;cd Yunzai-Bot
      git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login ;;
      4) cd $home;rm -rf Yunzai-Bot
@@ -352,7 +372,11 @@ because：
 傻嘚，去gitee反馈
 
 3️⃣QAQ  无法自动更新
-自己去脚本选项/update手动更新"
+自己去脚本选项/update手动更新
+
+4️⃣QAQ  为什么会更新失败(ο´･д･)??
+because：
+网络问题，gitee问题，代码问题"
 dialog --no-collapse --backtitle "小朋友你是否有很多问号" --title "疑难杂症大全" --msgbox "$yinan" 25 80
 show_more_menu
 }
