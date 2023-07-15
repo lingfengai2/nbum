@@ -47,7 +47,7 @@ else
         sleep 0.01
     done
 } | dialog --gauge "发现更新，最新版本: $git_version" 10 36
-    echo 100 | dialog --gauge "更新完成" 10 36
+    dialog --title "更新公告" --msgbox '试运行，还没做好（滑稽）回车后重载脚本' 20 60
     sleep 1
     source nbum.sh
     else
