@@ -55,8 +55,27 @@ else
     fi
 fi
 
+trap 'ctrlc' SIGINT
+ctrlc() {
+    choice_ctrlc=$(dialog --clear --title "菜单" \
+                    --menu "请选择一个选项："  0 0 4 \
+                    "1" "继续运行" \
+                    "2" "返回菜单" \
+                    "3" "重载脚本" \
+                    "4" "结束运行" \
+                    2>&1 >/dev/tty)
+    case $choice_ctrlc in
+        1) $current ;;
+        2) show_menu ;;
+        3)cd $home;cd nbum;source nbum.sh ;;
+        4) exit 0 ;;
+        *) ctrlc ;;
+    esac
+}
+
 # 定义一个函数，用于显示菜单选项，并根据用户选择执行相应操作或退出程序
 function show_menu() {
+current="show_menu"
   # 使用dialog的menu选项，显示菜单项，并返回用户选择的标签到变量choice中
 if [ "$(uname -o)" == "GNU/Linux" ]; then
     if [ -e "/etc/os-release" ]; then
@@ -106,11 +125,12 @@ fi
 }
 # 定义一个函数，用于显示菜单
 function show_android() {
+current="show_android"
      choice_android=$(dialog --stdout --scrollbar --title "Android工具" \
      --menu "请选择一个选项:" \
      20 80 12 \
      1 "🍭 一键美化:让你的终端变得更漂亮" \
-     2 "选项2" \
+     2 "💽 软件包换源:清华源" \
      3 "选项3" \
      0 "返回主菜单")
     if [ -z "$choice_android" ]; then
@@ -122,7 +142,8 @@ function show_android() {
          cd T-Header
          bash t-header.sh
          show_menu ;;
-      2)  ;;
+      2) sed -i 's@^\(deb.*stable main\)$@#\1\ndeb https://mirrors.tuna.tsinghua.edu.cn/termux/termux-packages-24 stable main@' $PREFIX/etc/apt/sources.list && apt update && apt upgrade
+         show_android ;;
       3)  ;;
       0) show_menu ;;
       *) show_android ;;
@@ -130,6 +151,7 @@ function show_android() {
 }
 # 定义一个函数，用于显示设备信息和联系方式，并让用户按任意键返回到菜单界面  
 function show_info() {
+current="show_info"
 # 使用echo命令输出手机信息
 device="$(neofetch --stdout | sed 's/$$/\r/' | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' | sed 's/\\n/\n/g')"
 nembers="
@@ -140,13 +162,14 @@ dialog --title "脚本信息" --msgbox "$device""$nembers" 0 0
 show_more_menu
 }
 # 定义一个函数，用于显示更多菜单选项，并根据用户选择执行相应操作或返回到上一级菜单界面  
-function show_more_menu() {  
+function show_more_menu() {
+current="show_more_menu"
    # 使用dialog的menu选项，显示两个更多菜单项，并返回用户选择的标签到变量more_choice中  
    more_choice=$(dialog --stdout --scrollbar \
     --title "菜单" \
     --menu "请选择一个选项:" \
     20 80 12 \
-    1 "ℹ️ 脚本信息:毫无意义的功能" \
+    1 "ℹ️  脚本信息:毫无意义的功能" \
     2 "💾 更新日志:更新了个寂寞🌚" \
     3 "🤔 疑难杂症:不懂就看看" \
     4 "🍧 *°▽°*update更新" \
@@ -167,6 +190,7 @@ function show_more_menu() {
 }
 # 定义一个函数，用于显示更新日志
 function show_change() {
+current="show_change"
 cd $home;cd nbum
 changelog=$(cat update.md)
 # 在对话框更新日志
@@ -175,6 +199,7 @@ show_more_menu
 }
 # 定义一个函数，用于显示菜单
 function show_shuaji() {
+current="show_shuaji"
      choice_shuaji=$(dialog --stdout --scrollbar --title "刷只因工具" \
      --menu "请选择一个选项:" \
      20 80 12 \
@@ -247,6 +272,7 @@ show_shuaji
     esac
 }
 function show_qq() {
+current="show_qq"
 # 使用dialog的menu选项，显示两个更多菜单项，并返回用户选择的标签到变量qq_choice中  
    qq_choice=$(dialog --stdout --scrollbar \
     --title "菜单" \
@@ -276,47 +302,57 @@ function show_qq() {
      fi
      ;;
      2)  # 检查包管理器并设置对应变量
-        if [ "$(uname -o)" == "GNU/Linux" ]; then
            if command -v apt-get >/dev/null 2>&1; then
-            apt install -y npm redis
+            apt install -y npm redis nodejs
            elif command -v pacman >/dev/null 2>&1; then
-            pacman -Syu --noconfirm npm redis
+            pacman -Syu --noconfirm npm redis nodejs
            else
             echo "未知的 Linux 发行版或包管理器"
             show_qq
            fi
-        fi 
         cd $home
         git clone --depth=1 -b main https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git
         cd Yunzai-Bot
         npm install pnpm -g
         pnpm install -P
         sleep 2.5
-        dialog --backtitle "安装完成" --title "确认" \
-       --yesno "是否需要运行它？" 10 30 \
-       status=$?
-      # 根据用户的选择执行不同的操作
-      if [ $status -eq 0 ]; then
-       node app
-       sleep 1
-       show_qq
-      else
-       show_qq
-      fi ;; 
+        dialog --yesno "你要启动Yunzai吗" 10 30
+        # 检查dialog命令的退出状态
+        case $? in
+          0) node app ;;
+          1) show_qq ;;
+        esac
+ ;; 
      3) cd $home;cd Yunzai-Bot
      git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login ;;
-     4) cd $home;rm -rf Yunzai-Bot ;;
+     4) cd $home;rm -rf Yunzai-Bot
+           if command -v apt-get >/dev/null 2>&1; then
+            apt remove -y npm redis nodejs;apt autoremove -y
+           elif command -v pacman >/dev/null 2>&1; then
+            pacman -Ryu --noconfirm npm redis nodejs
+           else
+            echo "未知的 Linux 发行版或包管理器"
+            show_qq
+           fi
+           show_qq ;;
      0) show_menu ;; 
      *) show_qq ;; 
    esac
 }
 function show_yinan() {
+current="show_yinan"
 yinan="
 1️⃣QAQ  为什么主菜单少了一些选项
 because：
 一些功能是针对不同系统制作的，
 其他系统无法使用
-所以进行了隐藏"
+所以进行了隐藏
+
+2️⃣QAQ  有bug怎么办
+傻嘚，去gitee反馈
+
+3️⃣QAQ  无法自动更新
+自己去脚本选项/update手动更新"
 dialog --no-collapse --backtitle "小朋友你是否有很多问号" --title "疑难杂症大全" --msgbox "$yinan" 25 80
 show_more_menu
 }
