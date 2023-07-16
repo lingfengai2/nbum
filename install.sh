@@ -52,11 +52,6 @@ case $confirm in
     ;;
 esac
 }
-if [ -d "$HOME/nbum" ]; then
-    echo "仓库校验完成✅"
-else
-    kelong
-fi
 kelong() {
 echo -e "\e[38;5;159m您需要\e[38;5;70m克隆本仓库\e[38;5;159m才能使用\033[0m"
   git2="\033[38;5;203;1m╭───┬───────┬───────────┬──────────────────┬───────────────────╮\033[0m"
@@ -86,6 +81,12 @@ echo -e "\e[38;5;159m您需要\e[38;5;70m克隆本仓库\e[38;5;159m才能使用
     chmod u+x nbum/nbum.sh
     chmod u+x nbum/install.sh
 }
+if [ -d "$HOME/nbum" ]; then
+    echo "仓库校验完成✅"
+else
+    kelong
+fi
+
 
 # 创建 nbum 文件
 nbumfiles=$(dirname "$(which bash)")
