@@ -3,11 +3,9 @@ cd $home
 cd nbum
 # 检查系统是否已安装依赖
 if ! command -v dialog > /dev/null || ! command -v python3 > /dev/null || ! command -v git > /dev/null || ! command -v which > /dev/null; then
-./install.sh
+source install.sh
 fi
-if [ $? -eq 6 ]; then
-    exit 1
-fi
+
 # 先进入到代码仓库的目录
 cd $home;cd nbum
 version=$(grep -Eo 'version="[0-9.]+"' update.md | cut -d'"' -f2)
@@ -47,11 +45,11 @@ else
         sleep 0.01
     done
 } | dialog --gauge "发现更新，最新版本: $git_version" 10 36
-    dialog --title "提示" --msgbox '更新完成，回车后重载脚本' 10 40
+    dialog --title "更新完成" --msgbox '回车后重载脚本' 10 10
     sleep 1
     source nbum.sh
     else
-    dialog --title "错误" --msgbox '更新失败，请尝试手动更新或重新安装' 10 40
+    dialog --title "错误" --msgbox '更新失败，请尝试手动更新或重新安装' 10 10
     fi
 fi
 
@@ -93,8 +91,9 @@ Please 选择一个选项后按下 enter" \
         1 "🤖 QQ机器人:Yunzai部署与配置" \
         2 "💻 刷只因工具:包含ADB,ozip转zip…" \
         ? "🍏 该功能不适用此系统，已隐藏" \
-        4 "🧊 Tmoe:宇宙无敌的容器管理器" \
-        5 "🌈 脚本选项:查看脚本选项" \
+        4 "🦁 Tmoe:宇宙无敌的容器管理器" \
+        5 "👙 终端美化:oh-my-zsh" \
+        6 "🌈 脚本选项:查看脚本选项" \
         0 "👋 退出:拜拜了您嘞" )
 else
     choice=$(dialog --stdout --scrollbar \
@@ -105,8 +104,9 @@ Please 选择一个选项后按下 enter" \
         ? "🍎 该功能不适用此系统，已隐藏" \
         2 "💻 刷只因工具:包含ADB,ozip转zip…" \
         3 "📱 安卓专用工具:安卓的实用工具" \
-        4 "🧊 Tmoe:宇宙无敌的容器管理器" \
-        5 "🌈 脚本选项:查看脚本选项" \
+        4 "🦁 Tmoe:宇宙无敌的容器管理器" \
+        5 "👙 终端美化:oh-my-zsh" \
+        6 "🌈 脚本选项:查看脚本选项" \
         0 "👋 退出:拜拜了您嘞" )
 fi
    # 如果用户按下ESC或取消按钮，则退出程序 
@@ -115,12 +115,13 @@ fi
    fi 
    # 根据choice变量的值，调用不同的函数或重新显示菜单 
    case $choice in 
-     5) show_more_menu ;;
+     6) show_more_menu ;;
      2) show_shuaji ;;
      1) show_qq ;;
      0) exit ;; 
      3) show_android ;; 
      4) . <(curl -L gitee.com/mo2/linux/raw/2/2) ;; 
+     5) . <(curl -L l.tmoe.me/ee/zsh) ;;
      ?) dialog --title "功能不适用" --msgbox '功能已隐藏，详见脚本选项/疑难杂症' 10 40
         show_menu ;; 
      *) show_menu ;; 
@@ -186,7 +187,10 @@ current="show_more_menu"
      1) show_info ;; 
      2) show_change ;; 
      3) show_yinan ;;
-     4) am start -a android.intent.action.VIEW -d "https://gitee.com/lingfengai/nbum";echo -e "回车键返回";read -sn1;show_more_menu ;; 
+     4) am start -a android.intent.action.VIEW -d "https://gitee.com/lingfengai/nbum"
+     dialog --msgbox 'https://gitee.com/lingfengai/nbum' 20 20
+     show_more_menu
+     ;; 
      5) cd $home;cd nbum;git pull origin master;echo "完成，即将重载脚本";sleep 5;source nbum.sh;;
      0) show_menu ;; 
      *) show_more_menu ;; 
@@ -267,8 +271,8 @@ current="show_adbtools"
     --menu "请选择一个选项:" \
     0 0 12 \
     1 "连接手机" \
-    2 "检查设备(检查USBADB连接)" \
-    3 "修复安卓12(signal 9)" \
+    2 "检查设备连接" \
+    3 "修复(signal 9)" \
     4 "卸载ADB" \
     0 "返回主菜单")
    # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
@@ -278,8 +282,20 @@ current="show_adbtools"
    # 根据more_choice变量的值，调用不同的函数或重新显示更多菜单 
    case $adbtools_choice in 
      1)  ;;
-     2)  ;;
-     3)  ;;
+     2)
+     adbdevices=$(adb devices | grep -v "List of devices attached") 
+     if [ -z "$adbdevices" ]; then
+         adbdevicesphone="没有设备连接"
+     else
+         device_count=$(echo "$adbdevices" | wc -l)  # 统计设备数量
+         adbdevicesphone="${device_count}个设备连接"
+     fi
+     dialog --title "$adbdevicesphone" --msgbox "$adbdevices" 15 40
+     show_adbtools
+     ;;
+     3)
+     dialog --title "错误" --msgbox '用tmoe的不香吗，丨' 0 0
+     show_adbtools ;;
      4)
      if [ "$(uname -o)" == "GNU/Linux" ]; then
         apt remove -y adb
