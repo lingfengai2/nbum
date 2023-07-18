@@ -10,6 +10,7 @@ green="\033[32m"
 nbum_home="$HOME/.nbum"
 nbum_app="$nbum_home/nbum"
 install_check() {
+echo -e "${purple}正在安装依赖${white}"
 if [ "$(uname -o)" == "GNU/Linux" ]; then
     if command -v apt-get >/dev/null 2>&1; then
         PM="apt install -y"
@@ -73,6 +74,6 @@ if ! grep -q "$line_to_append" "$nbum_files/nbum" ; then
     > "$nbum_files/nbum"
     echo "$line_to_append" > "$nbum_files/nbum"
     chmod 777 "$nbum_files/nbum"
-    echo -e "${purple}你可以使用 ${yellow}nbum ${purple}来启动脚本"
+    echo -e "${purple}你可以使用 ${yellow}nbum ${purple}来启动脚本${white}"
     exec $SHELL
 fi
