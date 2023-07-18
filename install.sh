@@ -1,79 +1,78 @@
 #!/bin/bash
-
-# 输出脚本信息
-NAME="nbum" # 脚本名称
-VERSION="1.0" # 脚本版本号
-cd $home
-yilai() {
-    if [ "$(uname -o)" == "GNU/Linux" ]; then
-      if command -v apt-get >/dev/null 2>&1; then
-        apt install -y dialog git which
-      elif command -v pacman >/dev/null 2>&1; then
-        pacman -Syu --noconfirm dialog git which
-      else
-        echo "未知的 Linux 发行版或包管理器"
-        exit 6
-      fi
+in_name_version="nbum-install-2.0"
+purple="\033[35m"
+white="\033[0m"
+red="\033[31m"
+yellow="\033[33m"
+blue="\033[34m"
+cyan="\033[36m"
+green="\033[32m"
+nbum_home="$HOME/.nbum"
+nbum_app="$nbum_home/nbum"
+install_check() {
+if [ "$(uname -o)" == "GNU/Linux" ]; then
+    if command -v apt-get >/dev/null 2>&1; then
+        PM="apt install -y"
+    elif command -v pacman >/dev/null 2>&1; then
+        PM="pacman -Syu --noconfirm"
     else
-      pkg install -y dialog git which
+        echo "$cyan请确认$purple Linux发行版$cyan是否受支持$white"
+        exit 6
     fi
-}
-kelong() {
-echo -e "\e[38;5;159m您需要\e[38;5;70m选择一个软件源\e[38;5;159m才能继续\033[0m"
-  git2="\033[38;5;203;1m╭───┬───────┬───────────┬──────────────────┬───────────────────╮\033[0m"
-  git3="\033[38;5;226;1m│ # \033[0m\033[38;5;120;1m│ \033[0m\033[38;5;120;1m选项  \033[0m\033[38;5;120;1m│ \033[0m\033[38;5;120;1m描述      \033[0m\033[38;5;120;1m│ \033[0m\033[38;5;120;1m   yes           \033[0m\033[38;5;120;1m│ \033[0m\033[38;5;120;1m       no         \033[0m\033[38;5;226;1m│\033[0m"
-  git5="\033[38;5;133;1m│ 0 \033[0m\033[38;5;40m│[Y/n]  \033[0m\033[38;5;244;2m│默认gitee \033[0m\033[38;5;244;2m │按回车键选择gitee \033[0m\033[38;5;166;2m│输n按回车选择github\033[0m\033[38;5;133;1m│\033[0m"
-  git6="\033[38;5;132;1m│ 1 \033[0m\033[38;5;104m│[y/N]  \033[0m\033[38;5;244;2m│默认github \033[0m\033[38;5;166;2m│按回车选择github  \033[0m\033[38;5;244;2m│输入n回车选择gitee \033[0m\033[38;5;132;1m│\033[0m"
-  git1="\033[38;5;203;1m╰───┴───────┴───────────┴──────────────────┴───────────────────╯\033[0m"
-  echo -e "$git2"
-  echo -e "$git3"
-  echo -e "$git5"
-  echo -e "$git6"
-  echo -e "$git1"
-  echo -e "您要继续吗? [\033[38;5;226;1mY/n\033[0m] "
-  read juxu
-  juxu=${juxu:-y}
-  case $juxu in
-  [yY])
-    git clone https://gitee.com/lingfengai/nbum.git
-    ;;
-  [nN])
-    git clone https://github.com/lingfengai2/nbum.git
-    ;;
-     *) ;;
-  esac
-    chmod u+x nbum/nbum.sh
-    chmod u+x nbum/install.sh
-}
-nbum_install() {
-if grep -q 'cd $home
-exec ./'nbum/nbum.sh' "$@"' $nbumfiles/nbum > /dev/null 2>&1; then
-    echo -e "完成"
+elif [ "$(uname -o)" == "Android" ]; then
+    PM="pkg install -y"
 else
-    echo 'cd $home
-exec ./"nbum/nbum.sh" "$@"' >> $nbumfiles/nbum
-    # 修改权限为 777
-    chmod 777 "$nbumfiles/nbum"
-    echo -e "完成"
-    exec $SHELL
+    echo -e "$red无法确认系统$white"
 fi
-}
-# 检查系统是否已安装依赖
-echo -e "正准备安装 $NAME"
+$PM dialog git which
 if ! command -v dialog > /dev/null || ! command -v git > /dev/null || ! command -v which > /dev/null; then
-    yilai
+    echo -e "${red}安装依赖失败，重新安装${white}"
+    install_check
 fi
-# 创建 nbum 文件
-echo "注意:选中 $NAME$VERSION，而非 $NAME"
-nbumfiles=$(dirname "$(which bash)")
-echo -e "正在编译软件包源文件"
-if [ -d "$HOME/nbum" ]; then
-    echo -e "原文件已存在"
-else
-    kelong
+}
+gitee_or_github_menu() {
+gitee_or_github="${purple}请选择${yellow}一个仓库${purple}来下载代码
+${cyan}╭───┬───────┬────────┬──────────────────╮
+│${yellow} # ${cyan}│${blue} 选项  │ 仓库源 │       描述       │
+├───┼───────┼────────┼──────────────────┤
+│${yellow} 0 ${cyan}│${blue} y     ${cyan}│ gitee  │ gitee国内速度快  │
+│${yellow} 1 ${cyan}│${blue} n     ${cyan}│ github │ github国外速度快 │
+╰───┴───────┴────────┴──────────────────╯${white}"
+echo -e "$gitee_or_github"
+echo -e "请输入一个选项 ${yellow}[Y/n]${white}"
+read gitee_or_github
+gitee_or_github=${gitee_or_github:-y}
+case $gitee_or_github in
+[yY]) git clone https://gitee.com/lingfengai/nbum.git ;;
+[nN]) git clone https://github.com/lingfengai2/nbum.git ;;
+*) echo -e "${green}请输入${yellow}正确的选项${white}"
+   gitee_or_github_menu ;;
+esac
+if [ ! -d "$HOME/.nbum/nbum" ]; then
+    cd "$nbum_home/nbum"
+    echo -e "${red}下载失败，请重试${white}"
+    gitee_or_github_menu
 fi
-if [ ! -f "$nbumfiles/nbum" ]; then
-  touch "$nbumfiles/nbum"
-  echo -e "正在处理软件包介质文件"
-  nbum_install
+}
+if ! command -v dialog > /dev/null || ! command -v git > /dev/null || ! command -v which > /dev/null; then
+    install_check
+fi
+if [ ! -d "$HOME/.nbum" ]; then
+    mkdir "$HOME/.nbum"
+fi
+if [ ! -d "$HOME/.nbum/nbum" ]; then
+    cd "$nbum_home"
+    gitee_or_github_menu
+fi
+nbum_files=$(dirname "$(which bash)")
+if [ ! -f "$nbum_files/nbum" ]; then
+    touch "$nbum_files/nbum"
+fi
+line_to_append='exec "$HOME/.nbum/nbum/nbum.sh" "$@"'
+if ! grep -q "$line_to_append" "$nbum_files/nbum" ; then
+    > "$nbum_files/nbum"
+    echo "$line_to_append" > "$nbum_files/nbum"
+    chmod 777 "$nbum_files/nbum"
+    echo -e "${purple}你可以使用 ${yellow}nbum ${purple}来启动脚本"
+    exec $SHELL
 fi
