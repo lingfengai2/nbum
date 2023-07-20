@@ -11,20 +11,6 @@ nbum_home="$HOME/.nbum"
 nbum_app="$nbum_home/nbum"
 install_check() {
 echo -e "${purple}正在安装依赖${white}"
-if [ "$(uname -o)" == "GNU/Linux" ]; then
-    if command -v apt-get >/dev/null 2>&1; then
-        PM="apt install -y"
-    elif command -v pacman >/dev/null 2>&1; then
-        PM="pacman -Syu --noconfirm"
-    else
-        echo "$cyan请确认$purple Linux发行版$cyan是否受支持$white"
-        exit 6
-    fi
-elif [ "$(uname -o)" == "Android" ]; then
-    PM="pkg install -y"
-else
-    echo -e "$red无法确认系统$white"
-fi
 $PM dialog git which
 if ! command -v dialog > /dev/null || ! command -v git > /dev/null || ! command -v which > /dev/null; then
     echo -e "${red}安装依赖失败，重新安装${white}"
@@ -55,6 +41,20 @@ if [ ! -d "$HOME/.nbum/nbum" ]; then
     gitee_or_github_menu
 fi
 }
+if [ "$(uname -o)" == "GNU/Linux" ]; then
+    if command -v apt-get >/dev/null 2>&1; then
+        PM="apt install -y"
+    elif command -v pacman >/dev/null 2>&1; then
+        PM="pacman -Syu --noconfirm"
+    else
+        echo "$cyan请确认$purple Linux发行版$cyan是否受支持$white"
+        exit 6
+    fi
+elif [ "$(uname -o)" == "Android" ]; then
+    PM="pkg install -y"
+else
+    echo -e "$red无法确认系统$white"
+fi
 if ! command -v dialog > /dev/null || ! command -v git > /dev/null || ! command -v which > /dev/null; then
     install_check
 fi
