@@ -1,24 +1,25 @@
 #!/bin/bash
 cd "$HOME/.nbum/nbum"
 source 2.sh
-cd "$nbum_app"
-sleep 5
 version=$(grep -Eo 'version="[0-9.]+"' "$nbum_app/update.md" | cut -d'"' -f2)
-# 检查更新
+cd "$nbum_app"
 dialog --title "当前版本:${version}" --infobox "正在检查更新..." 5 30
 git fetch origin master > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-    dialog --title "错误" --msgbox "请检查网络和权限." 7 40
+    sleep 2
+    dialog --title "错误" --msgbox "请检查网络和权限." 5 30
+    clear
     exit 1
 fi
 git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" | awk -F '"' '/version/ { print $2 }')
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse origin/master)
 if [ "$LOCAL" != "$REMOTE" ]; then
-    dialog --title "自动更新" --infobox "发现更新，正在进行资源校验..." 5 35
+    dialog --title "自动更新" --infobox "发现更新，正在进行资源校验..." 5 30
     git pull origin master > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-        dialog --title "错误" --msgbox "请检查网络和权限." 7 40
+        dialog --title "错误" --msgbox "请检查网络和权限." 5 30
+        clear
         exit 1
     fi
     sleep 1
@@ -29,12 +30,13 @@ if [ "$LOCAL" != "$REMOTE" ]; then
             echo $percent
             sleep 0.01
         done
-    } | dialog --gauge "发现更新，最新版本: $git_version" 10 36
-    dialog --title "更新完成" --infobox "即将重启脚本" 5 26
+    } | dialog --gauge "发现更新，最新版本: $git_version" 5 30
+    dialog --title "更新完成" --infobox "即将重启脚本" 5 30
     sleep 1
     exec nbum.sh
 else
-    dialog --title "自动更新" --infobox "没有发现更新" 5 26
+    dialog --title "最新版本: $git_version" --infobox "没有发现更新" 5 30
+    sleep 1
 fi
 trap 'ctrlc' SIGINT
 ctrlc() {
@@ -49,7 +51,7 @@ ctrlc() {
         1) $current ;;
         2) main_menu ;;
         3) cd $home;cd nbum;source nbum.sh ;;
-        4) exit 0 ;;
+        4) clear;exit 0 ;;
         *) ctrlc ;;
     esac
 }
@@ -61,6 +63,7 @@ if [ "$(uname -o)" == "GNU/Linux" ]; then
         distro="$NAME$VERSION"
     else
         echo "错误：无法获取系统信息"
+        clear
         exit 1
     fi
     main_choice=$(dialog --stdout --scrollbar \
@@ -90,6 +93,7 @@ else
     0 "👋 退出:拜拜了您嘞" )
 fi
 if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
+    clear
     exit
 fi 
 case $main_choice in 
@@ -100,9 +104,10 @@ case $main_choice in
        main_menu ;;
     5) . <(curl -L l.tmoe.me/ee/zsh)
        main_menu ;;
+    6) more_menu ;;
+    0) clear;exit 0 ;;
     ?) dialog --title "功能不适用" --msgbox '功能已隐藏，详见脚本选项/疑难杂症' 10 40
        main_menu ;; 
-    0) exit 0 ;;
     *) main_menu ;; 
    esac 
 }
@@ -143,11 +148,7 @@ case $qq_choice in
         cd Yunzai-Bot
         npm install pnpm -g
         pnpm install -P
-        yunzai_choice=$(dialog --yesno "你要启动Yunzai吗" 10 30)
-        case $yunzai_choice in
-            0) node app ;;
-            1) qq_menu ;;
-        esac ;;
+        qq_menu ;;
      3) if [ -d "$HOME/.nbum/Yunzai-Bot" ];then
             cd "$HOME/.nbum/Yunzai-Bot"
             git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login
@@ -288,8 +289,8 @@ case $more_choice in
     1) change_menu ;;
     2) problem_menu ;;
     3) am start -a android.intent.action.VIEW -d "https://gitee.com/lingfengai/nbum"
-       dialog --msgbox 'https://gitee.com/lingfengai/nbum' 20 20
-       show_more_menu ;;
+       dialog --msgbox 'https://gitee.com/lingfengai/nbum' 10 50
+       more_menu ;;
     4) cd "$nbum_app";git pull origin master;echo "完成，即将重载脚本";sleep 5;source nbum.sh ;;
     0) main_menu ;; 
     *) more_menu ;; 
