@@ -1,58 +1,41 @@
 #!/bin/bash
-cd $home
-cd nbum
-# 检查系统是否已安装依赖
-if ! command -v dialog > /dev/null || ! command -v python3 > /dev/null || ! command -v git > /dev/null || ! command -v which > /dev/null; then
-source install.sh
+cd "$HOME/.nbum/nbum"
+source 2.sh
+cd "$nbum_app"
+sleep 5
+version=$(grep -Eo 'version="[0-9.]+"' "$nbum_app/update.md" | cut -d'"' -f2)
+# 检查更新
+dialog --title "当前版本:${version}" --infobox "正在检查更新..." 5 30
+git fetch origin master > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    dialog --title "错误" --msgbox "请检查网络和权限." 7 40
+    exit 1
 fi
-
-# 先进入到代码仓库的目录
-cd $home;cd nbum
-version=$(grep -Eo 'version="[0-9.]+"' update.md | cut -d'"' -f2)
-{
-# 检查是否有新的更新
-for((x=1; x<=10; x++))
-  do
-    let percent=(x*5)
-    echo $percent
-    sleep 0.05
-  done
-} | dialog --gauge "检查版本更新，当前版本: $version" 10 36
-git fetch -q origin master
+git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" | awk -F '"' '/version/ { print $2 }')
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse origin/master)
-# 从 Gitee 仓库获取版本号
-git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" | awk -F '"' '/version/ { print $2 }')
-# 如果有新的更新，则拉取最新的代码并重新加载代码
-if [ "$LOCAL" == "$REMOTE" ]; then
-{
-    for ((x=1; x<=10; x++))
-    do
-        let percent=(x*5)+50
-        echo $percent
-        sleep 0.01
-    done
-} | dialog --gauge "已是最新版本，云端版本: $git_version" 10 36
-else
-    # 拉取最新的代码
-    if git pull origin master &> /dev/null; then
-{
-    # 重新加载代码
-    for ((x=1; x<=10; x++))
-    do
-        let percent=(x*5)+50
-        echo $percent
-        sleep 0.01
-    done
-} | dialog --gauge "发现更新，最新版本: $git_version" 10 36
-    dialog --title "更新完成" --msgbox '回车后重载脚本' 10 10
-    sleep 1
-    source nbum.sh
-    else
-    dialog --title "错误" --msgbox '更新失败，请尝试手动更新或重新安装' 10 10
+if [ "$LOCAL" != "$REMOTE" ]; then
+    dialog --title "自动更新" --infobox "发现更新，正在进行资源校验..." 5 35
+    git pull origin master > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        dialog --title "错误" --msgbox "请检查网络和权限." 7 40
+        exit 1
     fi
+    sleep 1
+    {
+        for ((x=1; x<=10; x++))
+        do
+            let percent=(x*10)
+            echo $percent
+            sleep 0.01
+        done
+    } | dialog --gauge "发现更新，最新版本: $git_version" 10 36
+    dialog --title "更新完成" --infobox "即将重启脚本" 5 26
+    sleep 1
+    exec nbum.sh
+else
+    dialog --title "自动更新" --infobox "没有发现更新" 5 26
 fi
-
 trap 'ctrlc' SIGINT
 ctrlc() {
     choice_ctrlc=$(dialog --clear --title "菜单" \
@@ -64,17 +47,14 @@ ctrlc() {
                     2>&1 >/dev/tty)
     case $choice_ctrlc in
         1) $current ;;
-        2) show_menu ;;
+        2) main_menu ;;
         3) cd $home;cd nbum;source nbum.sh ;;
         4) exit 0 ;;
         *) ctrlc ;;
     esac
 }
-
-# 定义一个函数，用于显示菜单选项，并根据用户选择执行相应操作或退出程序
-function show_menu() {
-current="show_menu"
-  # 使用dialog的menu选项，显示菜单项，并返回用户选择的标签到变量choice中
+function main_menu() {
+current="main_menu"
 if [ "$(uname -o)" == "GNU/Linux" ]; then
     if [ -e "/etc/os-release" ]; then
         source /etc/os-release
@@ -83,301 +63,247 @@ if [ "$(uname -o)" == "GNU/Linux" ]; then
         echo "错误：无法获取系统信息"
         exit 1
     fi
-    choice=$(dialog --stdout --scrollbar \
-        --title "NBUM-Tools $version running on $distro" \
-        --menu "Welome to use NBUM工具箱，使用 nbum 来启动工具箱
-Please 选择一个选项后按下 enter" \
-        20 80 12 \
-        1 "🤖 QQ机器人:Yunzai部署与配置" \
-        2 "💻 刷只因工具:包含ADB,ozip转zip…" \
-        ? "🍏 该功能不适用此系统，已隐藏" \
-        4 "🦁 Tmoe:宇宙无敌的容器管理器" \
-        5 "👙 终端美化:oh-my-zsh" \
-        6 "🌈 脚本选项:查看脚本选项" \
-        0 "👋 退出:拜拜了您嘞" )
+    main_choice=$(dialog --stdout --scrollbar \
+    --title "NBUM-Tools $version running on $distro" \
+    --menu "Welome to use NBUM工具箱，使用 nbum 来启动工具箱
+    Please 选择一个选项后按下 enter" \
+    20 80 12 \
+    1 "🤖 QQ机器人:Yunzai部署与配置" \
+    2 "💻 刷只因工具:包含ADB,ozip转zip…" \
+    ? "🍏 该功能不适用此系统，已隐藏" \
+    4 "🦁 Tmoe:宇宙无敌的容器管理器" \
+    5 "👙 终端美化:oh-my-zsh" \
+    6 "🌈 脚本选项:查看脚本选项" \
+    0 "👋 退出:拜拜了您嘞" )
 else
-    choice=$(dialog --stdout --scrollbar \
-        --title "NBUM-Tools $version running on $(uname -o)" \
-        --menu "Welome to use NBUM工具箱，使用 nbum 来启动工具箱
-Please 选择一个选项后按下 enter" \
-        20 80 12 \
-        ? "🍎 该功能不适用此系统，已隐藏" \
-        2 "💻 刷只因工具:包含ADB,ozip转zip…" \
-        3 "📱 安卓专用工具:安卓的实用工具" \
-        4 "🦁 Tmoe:宇宙无敌的容器管理器" \
-        5 "👙 终端美化:oh-my-zsh" \
-        6 "🌈 脚本选项:查看脚本选项" \
-        0 "👋 退出:拜拜了您嘞" )
+    main_choice=$(dialog --stdout --scrollbar \
+    --title "NBUM-Tools $version running on $(uname -o)" \
+    --menu "Welome to use NBUM工具箱，使用 nbum 来启动工具箱
+    Please 选择一个选项后按下 enter" \
+    20 80 12 \
+    ? "🍎 该功能不适用此系统，已隐藏" \
+    2 "💻 刷只因工具:包含ADB,ozip转zip…" \
+    3 "📱 安卓专用工具:安卓的实用工具" \
+    4 "🦁 Tmoe:宇宙无敌的容器管理器" \
+    5 "👙 终端美化:oh-my-zsh" \
+    6 "🌈 脚本选项:查看脚本选项" \
+    0 "👋 退出:拜拜了您嘞" )
 fi
-   # 如果用户按下ESC或取消按钮，则退出程序 
-   if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
-     exit
-   fi 
-   # 根据choice变量的值，调用不同的函数或重新显示菜单 
-   case $choice in 
-     6) show_more_menu ;;
-     2) show_shuaji ;;
-     1) show_qq ;;
-     0) exit ;; 
-     3) show_android ;; 
-     4) . <(curl -L gitee.com/mo2/linux/raw/2/2) ;; 
-     5) . <(curl -L l.tmoe.me/ee/zsh) ;;
-     ?) dialog --title "功能不适用" --msgbox '功能已隐藏，详见脚本选项/疑难杂症' 10 40
-        show_menu ;; 
-     *) show_menu ;; 
+if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
+    exit
+fi 
+case $main_choice in 
+    1) qq_menu ;;
+    2) shuaji_menu ;;
+    3) android_menu ;;
+    4) . <(curl -L gitee.com/mo2/linux/raw/2/2)
+       main_menu ;;
+    5) . <(curl -L l.tmoe.me/ee/zsh)
+       main_menu ;;
+    ?) dialog --title "功能不适用" --msgbox '功能已隐藏，详见脚本选项/疑难杂症' 10 40
+       main_menu ;; 
+    0) exit 0 ;;
+    *) main_menu ;; 
    esac 
 }
-# 定义一个函数，用于显示菜单
-function show_android() {
-current="show_android"
-     choice_android=$(dialog --stdout --scrollbar --title "Android工具" \
-     --menu "请选择一个选项:" \
-     20 80 12 \
-     1 "🍭 一键美化:让你的终端变得更漂亮" \
-     2 "💽 软件包换源:清华源" \
-     3 "选项3" \
-     0 "返回主菜单")
-    if [ -z "$choice_android" ]; then
-      show_menu
-    fi
-    case $choice_android in
-      1) cd $home
-         git clone https://github.com/remo7777/T-Header.git
-         cd T-Header
-         bash t-header.sh
-         show_menu ;;
-      2) sed -i 's@^\(deb.*stable main\)$@#\1\ndeb https://mirrors.tuna.tsinghua.edu.cn/termux/termux-packages-24 stable main@' $PREFIX/etc/apt/sources.list && apt update && apt upgrade
-         show_android ;;
-      3)  ;;
-      0) show_menu ;;
-      *) show_android ;;
-    esac
-}
-# 定义一个函数，用于显示设备信息和联系方式，并让用户按任意键返回到菜单界面  
-function show_info() {
-# 使用echo命令输出手机信息
-device="$(neofetch --stdout | sed 's/$$/\r/' | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' | sed 's/\\n/\n/g')"
-nembers="
-作者：凌风哎
-QQ：3405303811
-WeChat：不告诉你"
-dialog --title "脚本信息" --msgbox "$device""$nembers" 0 0
-show_more_menu
-}
-# 定义一个函数，用于显示更多菜单选项，并根据用户选择执行相应操作或返回到上一级菜单界面  
-function show_more_menu() {
-current="show_more_menu"
-   # 使用dialog的menu选项，显示两个更多菜单项，并返回用户选择的标签到变量more_choice中  
-   more_choice=$(dialog --stdout --scrollbar \
-    --title "菜单" \
-    --menu "请选择一个选项:" \
-    20 80 12 \
-    1 "ℹ️  脚本信息:毫无意义的功能" \
-    2 "💾 更新日志:更新了个寂寞🌚" \
-    3 "🤔 疑难杂症:不懂就看看" \
-    4 "⚡ 前往gitee nbum详情页" \
-    4 "🍧 *°▽°*update更新" \
-    0 "🔙 返回:滚回主菜单")
-   # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
-   if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
-      show_menu 
-   fi 
-   # 根据more_choice变量的值，调用不同的函数或重新显示更多菜单 
-   case $more_choice in 
-     1) show_info ;; 
-     2) show_change ;; 
-     3) show_yinan ;;
-     4) am start -a android.intent.action.VIEW -d "https://gitee.com/lingfengai/nbum"
-     dialog --msgbox 'https://gitee.com/lingfengai/nbum' 20 20
-     show_more_menu
-     ;; 
-     5) cd $home;cd nbum;git pull origin master;echo "完成，即将重载脚本";sleep 5;source nbum.sh;;
-     0) show_menu ;; 
-     *) show_more_menu ;; 
-   esac
-}
-# 定义一个函数，用于显示更新日志
-function show_change() {
-current="show_change"
-cd $home;cd nbum
-changelog=$(cat update.md)
-# 在对话框更新日志
-dialog --no-collapse --backtitle "更新日志" --title "计算器更新日志" --msgbox "$changelog" 25 80
-show_more_menu
-}
-# 定义一个函数，用于显示菜单
-function show_shuaji() {
-current="show_shuaji"
-     choice_shuaji=$(dialog --stdout --scrollbar --title "刷只因工具" \
-     --menu "请选择一个选项:" \
-     0 0 12 \
-     1 "ADB工具" \
-     2 "OZIP转成ZIP格式" \
-     3 "选项3" \
-     0 "返回主菜单")
-    if [ -z "$choice_shuaji" ]; then
-      show_menu
-    fi
-    case $choice_shuaji in
-      1)   # 检查设备类型
-         if [ "$(uname -o)" == "GNU/Linux" ]; then
-         # 获取ADB路径
-         adb_path=$(command -v adb)
-
-         # 检查ADB是否已经安装
-             if [ -z "${adb_path}" ]; then
-         # 安装ADB
-               if [ "$(command -v apt)" != "" ]; then
-               apt install -y adb
-               else
-               dialog --backtitle "温馨提示" --title "注意" --msgbox '无法在安卓和Ubuntu除外的系统上安装adb' 10 40
-               show_shuaji
-               fi
-              fi
-         elif [ "$(uname -o)" == "Android" ]; then
-         # 获取Android Tools路径
-         android_tools_path=$(command -v adb)
-         # 检查安卓工具是否已经安装
-                   if [ -z "${android_tools_path}" ]; then
-                   # 安装Android Tools
-                   apt install -y android-tools
-                   fi
-         else
-           dialog --backtitle "温馨提示" --title "注意" --msgbox '无法在安卓和Ubuntu除外的系统上安装adb' 10 40
-           show_shuaji
-         fi
-         show_adbtools ;;
-      2) cd $home
-        if [ -d "$HOME/oziptozip" ]
-        then
-         cd oziptozip
-        else
-         git clone https://github.com/liyw0205/oziptozip.git
-         cd oziptozip
-        fi
-        python3 -m pip install --upgrade pip
-        pip install -r requirements.txt
-        show_shuaji ;;
-      3)  ;;
-      0)  show_menu ;;
-      *)  show_shuaji ;;
-    esac
-}
-show_adbtools() {
-current="show_adbtools"
-# 使用dialog的menu选项，显示两个更多菜单项，并返回用户选择的标签到变量qq_choice中  
-   adbtools_choice=$(dialog --stdout --scrollbar \
-    --title "ADB-Tools" \
-    --menu "请选择一个选项:" \
-    0 0 12 \
-    1 "连接手机" \
-    2 "检查设备连接" \
-    3 "修复(signal 9)" \
-    4 "卸载ADB" \
-    0 "返回主菜单")
-   # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
-   if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
-      show_shuaji
-   fi 
-   # 根据more_choice变量的值，调用不同的函数或重新显示更多菜单 
-   case $adbtools_choice in 
-     1)  ;;
-     2)
-     adbdevices=$(adb devices | grep -v "List of devices attached") 
-     if [ -z "$adbdevices" ]; then
-         adbdevicesphone="没有设备连接"
-     else
-         device_count=$(echo "$adbdevices" | wc -l)  # 统计设备数量
-         adbdevicesphone="${device_count}个设备连接"
-     fi
-     dialog --title "$adbdevicesphone" --msgbox "$adbdevices" 15 40
-     show_adbtools
-     ;;
-     3)
-     dialog --title "错误" --msgbox '用tmoe的不香吗，丨' 0 0
-     show_adbtools ;;
-     4)
-     if [ "$(uname -o)" == "GNU/Linux" ]; then
-        apt remove -y adb
-     elif [ "$(uname -o)" == "Android" ]; then
-        apt remove -y android_tools
-     fi
-     show_shuaji
-     ;;
-     0) show_shuaji ;;
-   esac
-}
-function show_qq() {
-current="show_qq"
-# 使用dialog的menu选项，显示两个更多菜单项，并返回用户选择的标签到变量qq_choice中  
-   qq_choice=$(dialog --stdout --scrollbar \
-    --title "菜单" \
-    --menu "请选择一个选项:" \
-    0 0 12 \
-    1 "启动Yunzai" \
-    2 "安装Yunzai" \
-    3 "修复版本过低" \
-    4 "卸载Yunzai" \
-    0 "返回主菜单")
-   # 如果用户按下ESC或取消按钮，则返回到上一级菜单界面 
-   if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
-      show_menu 
-   fi 
-   # 根据more_choice变量的值，调用不同的函数或重新显示更多菜单 
-   case $qq_choice in 
-     1) cd $home
-     if [ -d "$HOME/Yunzai-Bot" ]
-     then
-      cd Yunzai-Bot
-      pnpm install -P
-      node app
-      show_qq
-     else
-      dialog --backtitle "不是你什么意思" --title "error" --msgbox '没安装你让我怎么启动？' 10 40
-      show_qq
-     fi
-     ;;
-     2)  # 检查包管理器并设置对应变量
-           if command -v apt-get >/dev/null 2>&1; then
+function qq_menu() {
+current="qq_menu"
+qq_choice=$(dialog --stdout --scrollbar \
+--title "Yunzai-Bot菜单" \
+--menu "请选择一个选项:" \
+0 0 12 \
+1 "启动Yunzai" \
+2 "安装Yunzai" \
+3 "修复版本过低" \
+4 "卸载Yunzai" \
+0 "返回主菜单")
+if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
+    main_menu
+fi 
+case $qq_choice in 
+    1) if [ -d "$HOME/.nbum/Yunzai-Bot" ];then
+        cd "$HOME/.nbum/Yunzai-Bot"
+        pnpm install -P
+        node app
+        qq_menu
+       else
+        dialog --title "error" --msgbox '没安装你让我怎么启动？' 10 40
+        qq_menu
+       fi ;;
+     2) if command -v apt-get >/dev/null 2>&1; then
             apt install -y npm redis nodejs
-           elif command -v pacman >/dev/null 2>&1; then
+        elif command -v pacman >/dev/null 2>&1; then
             pacman -Syu --noconfirm npm redis nodejs
-           else
-            echo "未知的 Linux 发行版或包管理器"
-            show_qq
-           fi
-        cd $home
+        else
+            dialog --msgbox '软件包错误' 10 40
+            qq_menu
+        fi
+        cd "$HOME/.nbum"
         git clone --depth=1 -b main https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git
         cd Yunzai-Bot
         npm install pnpm -g
         pnpm install -P
-        sleep 2.5
-        dialog --yesno "你要启动Yunzai吗" 10 30
-        # 检查dialog命令的退出状态
-        case $? in
-          0) node app ;;
-          1) show_qq ;;
-        esac
-     ;; 
-     3) cd $home;cd Yunzai-Bot
-     git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login ;;
-     4) cd $home;rm -rf Yunzai-Bot
-           if command -v apt-get >/dev/null 2>&1; then
+        yunzai_choice=$(dialog --yesno "你要启动Yunzai吗" 10 30)
+        case $yunzai_choice in
+            0) node app ;;
+            1) qq_menu ;;
+        esac ;;
+     3) if [ -d "$HOME/.nbum/Yunzai-Bot" ];then
+            cd "$HOME/.nbum/Yunzai-Bot"
+            git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login
+            qq_menu
+        else
+            dialog --title "error" --msgbox '没安装你让我怎么修复？' 10 40
+            qq_menu
+        fi ;;
+     4) cd "$HOME/.nbum";rm -rf Yunzai-Bot
+        if command -v apt-get >/dev/null 2>&1; then
             apt remove -y npm redis nodejs;apt autoremove -y
-           elif command -v pacman >/dev/null 2>&1; then
+        elif command -v pacman >/dev/null 2>&1; then
             pacman -Ryu --noconfirm npm redis nodejs
-           else
-            echo "未知的 Linux 发行版或包管理器"
-            show_qq
-           fi
-           show_qq ;;
-     0) show_menu ;; 
-     *) show_qq ;; 
-   esac
+        else
+            dialog --msgbox '软件包错误' 10 40
+            qq_menu
+        fi
+        qq_menu ;;
+     0) main_menu ;; 
+     *) qq_menu ;; 
+esac
 }
-function show_yinan() {
-current="show_yinan"
-yinan="
+function shuaji_menu() {
+current="shuaji_menu"
+choice_shuaji=$(dialog --stdout --scrollbar --title "刷只因工具" \
+--menu "请选择一个选项:" \
+0 0 12 \
+1 "ADB工具" \
+2 "OZIP转成ZIP格式" \
+0 "返回主菜单")
+if [ -z "$choice_shuaji" ]; then
+    main_menu
+fi
+case $choice_shuaji in
+    1) if [ "$(uname -o)" == "GNU/Linux" ]; then
+        if [ "$(command -v apt)" != "" ]; then
+            $PM adb
+        else
+            dialog --backtitle "温馨提示" --title "注意" --msgbox '无法在安卓和Ubuntu除外的系统上安装adb' 10 40
+            shuaji_nenu
+        fi
+       elif [ "$(uname -o)" == "Android" ]; then
+        $PM android-tools
+       else
+        dialog --backtitle "温馨提示" --title "注意" --msgbox '无法在安卓和Ubuntu除外的系统上安装adb' 10 40
+        shuaji_menu
+       fi
+       adbtools_menu
+    ;;
+    2) cd "$HOME/.nbum"
+       if [ -d "$HOME/.nbum/oziptozip" ];then
+        cd oziptozip
+       else
+        git clone https://github.com/liyw0205/oziptozip.git
+        cd oziptozip
+       fi
+       python3 -m pip install --upgrade pip
+       pip install -r requirements.txt
+       shuaji_menu ;;
+    0)  main_menu ;;
+    *)  shuaji_menu ;;
+esac
+}
+adbtools_menu() {
+current="adbtools_menu"
+adbtools_choice=$(dialog --stdout --scrollbar \
+--title "ADB-Tools" \
+--menu "请选择一个选项:" \
+0 0 12 \
+1 "连接手机" \
+2 "检查设备连接" \
+3 "修复(signal 9)" \
+4 "卸载ADB" \
+0 "返回主菜单")
+if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
+    shuaji_menu
+fi 
+case $adbtools_choice in 
+    1)  ;;
+    2) adbdevices=$(adb devices | grep -v "List of devices attached") 
+       if [ -z "$adbdevices" ]; then
+        adbdevicesphone="没有设备连接"
+       else
+        device_count=$(echo "$adbdevices" | wc -l)  # 统计设备数量
+        adbdevicesphone="${device_count}个设备连接"
+       fi
+       dialog --title "$adbdevicesphone" --msgbox "$adbdevices" 15 40
+       adbtools_menu ;;
+    3) dialog --title "错误" --msgbox '用tmoe的不香吗，丨' 0 0
+       adbtools_menu ;;
+    4) if [ "$(uname -o)" == "GNU/Linux" ]; then
+        apt remove -y adb
+       elif [ "$(uname -o)" == "Android" ]; then
+        apt remove -y android_tools
+       fi
+       shuaji_menu ;;
+    0) shuaji_menu ;;
+esac
+}
+function android_menu() {
+current="android_menu"
+choice_android=$(dialog --stdout --scrollbar --title "Android工具" \
+--menu "请选择一个选项:" \
+20 80 12 \
+1 "🍭 一键美化:让你的终端变得更漂亮" \
+2 "💽 软件包换源:清华源" \
+0 "返回主菜单")
+if [ -z "$choice_android" ]; then
+    main_menu
+fi
+case $choice_android in
+    1) cd $home
+       git clone https://github.com/remo7777/T-Header.git
+       cd T-Header
+       bash t-header.sh
+       main_menu ;;
+    2) sed -i 's@^\(deb.*stable main\)$@#\1\ndeb https://mirrors.tuna.tsinghua.edu.cn/termux/termux-packages-24 stable main@' $PREFIX/etc/apt/sources.list && apt update && apt upgrade
+       android_menu ;;
+    0) main_menu ;;
+    *) android_menu ;;
+esac
+}
+function more_menu() {
+current="more_menu"
+more_choice=$(dialog --stdout --scrollbar \
+--title "菜单" \
+--menu "请选择一个选项:" \
+20 80 12 \
+1 "💾 更新日志:更新了个寂寞🌚" \
+2 "🤔 疑难杂症:不懂就看看" \
+3 "⚡ 前往gitee nbum详情页" \
+4 "🍧 *°▽°*update更新" \
+0 "🔙 返回:滚回主菜单")
+if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
+    main_menu 
+fi 
+case $more_choice in 
+    1) change_menu ;;
+    2) problem_menu ;;
+    3) am start -a android.intent.action.VIEW -d "https://gitee.com/lingfengai/nbum"
+       dialog --msgbox 'https://gitee.com/lingfengai/nbum' 20 20
+       show_more_menu ;;
+    4) cd "$nbum_app";git pull origin master;echo "完成，即将重载脚本";sleep 5;source nbum.sh ;;
+    0) main_menu ;; 
+    *) more_menu ;; 
+esac
+}
+function change_menu() {
+current="change_menu"
+changelog=$(cat "$nbum_app/update.md")
+dialog --no-collapse --backtitle "更新日志" --title "计算器更新日志" --msgbox "$changelog" 25 80
+more_menu
+}
+function problem_menu() {
+current="problem_menu"
+problem="
 1️⃣QAQ  为什么主菜单少了一些选项
 because：
 一些功能是针对不同系统制作的，
@@ -393,8 +319,7 @@ because：
 4️⃣QAQ  为什么会更新失败(ο´･д･)??
 because：
 网络问题，gitee问题，代码问题"
-dialog --no-collapse --backtitle "小朋友你是否有很多问号" --title "疑难杂症大全" --msgbox "$yinan" 25 80
-show_more_menu
+dialog --no-collapse --backtitle "小朋友你是否有很多问号" --title "疑难杂症大全" --msgbox "$problem" 25 80
+more_menu
 }
-show_menu
-exit 0
+main_menu
