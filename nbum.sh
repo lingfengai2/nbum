@@ -2,7 +2,6 @@
 cd "$HOME/.nbum/nbum"
 source 2.sh
 version=$(grep -Eo 'version="[0-9.]+"' "$nbum_app/update.md" | cut -d'"' -f2)
-cd "$nbum_app"
 dialog --title "当前版本:${version}" --infobox "正在检查更新..." 5 30
 git fetch origin master > /dev/null 2>&1
 if [ $? -ne 0 ]; then
@@ -30,12 +29,12 @@ if [ "$LOCAL" != "$REMOTE" ]; then
             echo $percent
             sleep 0.01
         done
-    } | dialog --gauge "发现更新，最新版本: $git_version" 5 30
+    } | dialog --gauge "发现更新，最新版本:$git_version" 5 30
     dialog --title "更新完成" --infobox "即将重启脚本" 5 30
     sleep 1
-    exec nbum.sh
+    source nbum.sh
 else
-    dialog --title "最新版本: $git_version" --infobox "没有发现更新" 5 30
+    dialog --title "最新版本:$git_version" --infobox "没有发现更新" 5 30
     sleep 1
 fi
 trap 'ctrlc' SIGINT
@@ -51,7 +50,7 @@ ctrlc() {
         1) $current ;;
         2) main_menu ;;
         3) cd $home;cd nbum;source nbum.sh ;;
-        4) clear;exit 0 ;;
+        4) exit 0 ;;
         *) ctrlc ;;
     esac
 }
@@ -105,7 +104,7 @@ case $main_choice in
     5) . <(curl -L l.tmoe.me/ee/zsh)
        main_menu ;;
     6) more_menu ;;
-    0) clear;exit 0 ;;
+    0) exit 0 ;;
     ?) dialog --title "功能不适用" --msgbox '功能已隐藏，详见脚本选项/疑难杂症' 10 40
        main_menu ;; 
     *) main_menu ;; 
