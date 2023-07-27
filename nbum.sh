@@ -32,6 +32,7 @@ if [ "$LOCAL" != "$REMOTE" ]; then
     } | dialog --gauge "发现更新，最新版本:$git_version" 5 30
     dialog --title "更新完成" --infobox "即将重启脚本" 5 30
     sleep 1
+    cd "${nbum_aop}"
     source nbum.sh
 else
     dialog --title "最新版本:$git_version" --infobox "没有发现更新" 5 30
@@ -49,7 +50,7 @@ ctrlc() {
     case $choice_ctrlc in
         1) $current ;;
         2) main_menu ;;
-        3) cd $home;cd nbum;source nbum.sh ;;
+        3) cd "${nbum_app}";source nbum.sh ;;
         4) exit 0 ;;
         *) ctrlc ;;
     esac
@@ -88,7 +89,7 @@ else
     3 "📱 安卓专用工具:安卓的实用工具" \
     4 "🦁 Tmoe:宇宙无敌的容器管理器" \
     5 "👙 终端美化:oh-my-zsh" \
-    6 "🌈 脚本选项:查看脚本选项" \
+    6 "🌈 setting:脚本设置" \
     0 "👋 退出:拜拜了您嘞" )
 fi
 if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
@@ -103,7 +104,7 @@ case $main_choice in
        main_menu ;;
     5) . <(curl -L l.tmoe.me/ee/zsh)
        main_menu ;;
-    6) more_menu ;;
+    6) setting_menu ;;
     0) exit 0 ;;
     ?) dialog --title "功能不适用" --msgbox '功能已隐藏，详见脚本选项/疑难杂症' 10 40
        main_menu ;; 
@@ -270,39 +271,45 @@ case $choice_android in
     *) android_menu ;;
 esac
 }
-function more_menu() {
-current="more_menu"
-more_choice=$(dialog --stdout --scrollbar \
---title "菜单" \
+function setting_menu() {
+current="setting_menu"
+setting_choice=$(dialog --stdout --scrollbar \
+--title "设置" \
 --menu "请选择一个选项:" \
-20 80 12 \
-1 "💾 更新日志:更新了个寂寞🌚" \
-2 "🤔 疑难杂症:不懂就看看" \
-3 "⚡ 前往gitee nbum详情页" \
-4 "🍧 *°▽°*update更新" \
-0 "🔙 返回:滚回主菜单")
+0 0 12 \
+" " "-🍓设置相关-" \
+1 "🍧 *°▽°*update" \
+2 "☂️ 切换仓库源" \
+3 "⚡ 前往gitee" \
+" " "-🚥脚本相关-" \
+4 "💾 更新日志" \
+5 "🤔 疑难杂症" \
+0 "🔙 返回主菜单")
 if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
     main_menu 
 fi 
-case $more_choice in 
-    1) change_menu ;;
-    2) problem_menu ;;
-    3) am start -a android.intent.action.VIEW -d "https://gitee.com/lingfengai/nbum"
+case $setting_choice in 
+    1) cd "$nbum_app";git pull origin master;;
+    2) setting_git_menu ;;
+    3) case $(uname -o) in
+        Android) am start -a android.intent.action.VIEW -d "${nbum_gitee}" ;;
+       esac
        dialog --msgbox 'https://gitee.com/lingfengai/nbum' 10 50
-       more_menu ;;
-    4) cd "$nbum_app";git pull origin master;echo "完成，即将重载脚本";sleep 5;source nbum.sh ;;
+       setting_menu ;;
+    4) setting_change_menu ;;
+    5) setting_problem_menu ;;
     0) main_menu ;; 
-    *) more_menu ;; 
+    *) setting_menu ;; 
 esac
 }
-function change_menu() {
-current="change_menu"
+function setting_change_menu() {
+current="setting_change_menu"
 changelog=$(cat "$nbum_app/update.md")
 dialog --no-collapse --backtitle "更新日志" --title "计算器更新日志" --msgbox "$changelog" 25 80
-more_menu
+setting_menu
 }
-function problem_menu() {
-current="problem_menu"
+function setting_problem_menu() {
+current="setting_problem_menu"
 problem="
 1️⃣QAQ  为什么主菜单少了一些选项
 because：
@@ -320,6 +327,25 @@ because：
 because：
 网络问题，gitee问题，代码问题"
 dialog --no-collapse --backtitle "小朋友你是否有很多问号" --title "疑难杂症大全" --msgbox "$problem" 25 80
-more_menu
+setting_menu
+}
+setting_git_menu() {
+remote_url=$(git remote get-url origin)
+if [[ ${remote_url} == *"gitee"* ]]; then
+    dialog --title "当前仓库源为Gitee" --yesno "你是否要切换仓库源为Github？" 7 40
+    setting_git_choice=$?
+    if [ ${setting_git_choice} -eq 0 ]; then
+        git remote set-url origin https://github.com/lingfengai2/nbum.git
+    fi
+elif [[ ${remote_url} == *"github"* ]]; then
+    dialog --title "当前仓库源为Github" --yesno "你是否要切换仓库源为Gitee？" 7 40
+    setting_git_choice=$?
+    if [ ${setting_git_choice} -eq 0 ]; then
+       git remote set-url origin https://gitee.com/lingfengai2/nbum.git
+    fi
+else
+    dialog --title '错误' --msgbox '无法获取仓库源' 5 20
+fi
+setting_menu
 }
 main_menu

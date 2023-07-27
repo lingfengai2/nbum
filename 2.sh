@@ -9,6 +9,8 @@ cyan="\033[36m"
 green="\033[32m"
 nbum_home="$HOME/.nbum"
 nbum_app="$nbum_home/nbum"
+nbum_gitee="https://gitee.com/lingfengai/nbum.git"
+nbum_github="https://github.com/lingfengai2/nbum.git"
 install_check() {
 echo -e "${purple}正在安装依赖${white}"
 $PM dialog git which
@@ -25,13 +27,14 @@ ${cyan}╭───┬───────┬────────┬──�
 │${yellow} 0 ${cyan}│${blue} y     ${cyan}│ gitee  │ gitee国内速度快  │
 │${yellow} 1 ${cyan}│${blue} n     ${cyan}│ github │ github国外速度快 │
 ╰───┴───────┴────────┴──────────────────╯${white}"
+echo -e "${yellow}注:选择仓库源后该仓库源将作为默认的${purple}克隆/拉取地址${white}"
 echo -e "$gitee_or_github"
 echo -e "请输入一个选项 ${yellow}[Y/n]${white}"
 read gitee_or_github
 gitee_or_github=${gitee_or_github:-y}
 case $gitee_or_github in
-[yY]) git clone https://gitee.com/lingfengai/nbum.git ;;
-[nN]) git clone https://github.com/lingfengai2/nbum.git ;;
+[yY]) git clone "${nbum_gitee} ;;
+[nN]) git clone "${nbum_github} ;;
 *) echo -e "${green}请输入${yellow}正确的选项${white}"
    gitee_or_github_menu ;;
 esac
