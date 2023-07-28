@@ -2,11 +2,11 @@
 cd "$HOME/.nbum/nbum"
 source 2.sh
 version=$(grep -Eo 'version="[0-9.]+"' "$nbum_app/update.md" | cut -d'"' -f2)
-dialog --title "当前版本:${version}" --infobox "正在检查更新..." 5 30
+dialog --title "当前版本:${version}" --infobox "正在检查更新..." 10 30
 git fetch origin master > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     sleep 2
-    dialog --title "错误" --msgbox "请检查网络和权限." 5 30
+    dialog --title "错误" --msgbox "请检查网络和权限." 10 30
     clear
     exit 1
 fi
@@ -14,10 +14,10 @@ git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" |
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse origin/master)
 if [ "$LOCAL" != "$REMOTE" ]; then
-    dialog --title "自动更新" --infobox "发现更新，正在进行资源校验..." 5 30
+    dialog --title "自动更新" --infobox "发现更新，正在进行资源校验..." 10 30
     git pull origin master > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-        dialog --title "错误" --msgbox "请检查网络和权限." 5 30
+        dialog --title "错误" --msgbox "请检查网络和权限." 10 30
         clear
         exit 1
     fi
@@ -29,13 +29,13 @@ if [ "$LOCAL" != "$REMOTE" ]; then
             echo $percent
             sleep 0.01
         done
-    } | dialog --gauge "发现更新，最新版本:$git_version" 5 30
-    dialog --title "更新完成" --infobox "即将重启脚本" 5 30
+    } | dialog --gauge "发现更新，最新版本:$git_version" 10 30
+    dialog --title "更新完成" --infobox "即将重启脚本" 10 30
     sleep 1
     cd "${nbum_aop}"
     source nbum.sh
 else
-    dialog --title "最新版本:$git_version" --infobox "没有发现更新" 5 30
+    dialog --title "最新版本:$git_version" --infobox "没有发现更新" 10 30
     sleep 0.5
 fi
 trap 'ctrlc' SIGINT
