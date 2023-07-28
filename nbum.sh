@@ -36,7 +36,7 @@ if [ "$LOCAL" != "$REMOTE" ]; then
     source nbum.sh
 else
     dialog --title "最新版本:$git_version" --infobox "没有发现更新" 5 30
-    sleep 1
+    sleep 0.5
 fi
 trap 'ctrlc' SIGINT
 ctrlc() {
@@ -84,7 +84,7 @@ else
     --menu "Welome to use NBUM工具箱，使用 nbum 来启动工具箱
     Please 选择一个选项后按下 enter" \
     20 80 12 \
-    ? "🍎 该功能不适用此系统，已隐藏" \
+    ? "🍎 QQ机器人不适用安卓" \
     2 "💻 刷只因工具:包含ADB,ozip转zip…" \
     3 "📱 安卓专用工具:安卓的实用工具" \
     4 "🦁 Tmoe:宇宙无敌的容器管理器" \
@@ -106,7 +106,7 @@ case $main_choice in
        main_menu ;;
     6) setting_menu ;;
     0) exit 0 ;;
-    ?) dialog --title "功能不适用" --msgbox '功能已隐藏，详见脚本选项/疑难杂症' 10 40
+    ?) dialog --title "功能不适用" --msgbox '功能无法使用，详见脚本选项/疑难杂症' 10 40
        main_menu ;; 
     *) main_menu ;; 
    esac 
@@ -274,14 +274,14 @@ esac
 function setting_menu() {
 current="setting_menu"
 setting_choice=$(dialog --stdout --scrollbar \
---title "设置" \
+--title "setting" \
 --menu "请选择一个选项:" \
 0 0 12 \
 " " "-🍓设置相关-" \
 1 "🍧 *°▽°*update" \
 2 "☂️ 切换仓库源" \
-3 "⚡ 前往gitee" \
 " " "-🚥脚本相关-" \
+3 "⚡ 前往gitee" \
 4 "💾 更新日志" \
 5 "🤔 疑难杂症" \
 0 "🔙 返回主菜单")
@@ -305,7 +305,7 @@ esac
 function setting_change_menu() {
 current="setting_change_menu"
 changelog=$(cat "$nbum_app/update.md")
-dialog --no-collapse --backtitle "更新日志" --title "计算器更新日志" --msgbox "$changelog" 25 80
+dialog --no-collapse --title "更新日志" --msgbox "$changelog" 25 80
 setting_menu
 }
 function setting_problem_menu() {
@@ -326,7 +326,7 @@ because：
 4️⃣QAQ  为什么会更新失败(ο´･д･)??
 because：
 网络问题，gitee问题，代码问题"
-dialog --no-collapse --backtitle "小朋友你是否有很多问号" --title "疑难杂症大全" --msgbox "$problem" 25 80
+dialog --no-collapse --title "疑难杂症大全" --msgbox "$problem" 25 80
 setting_menu
 }
 setting_git_menu() {
