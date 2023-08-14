@@ -1,23 +1,32 @@
 #!/bin/bash
+nbum_loading(){
 cd "$HOME/.nbum/nbum"
-source 2.sh
-version=$(grep -Eo 'version="[0-9.]+"' "$nbum_app/update.md" | cut -d'"' -f2)
-dialog --title "当前版本:${version}" --infobox "正在检查更新..." 10 30
+dialog --infobox "正在校验仓库完整性" 6 30
+sleep 1
+if [[ -n $(git status -s) ]]; then
+    dialog --title "警告:1001" --msgbox "完整性校验失败，请重新安装NBUM" 6 40
+fi
+}
+nbum_update(){
+version=$(head -n 1 "$nbum_app/update.md" | cut -d'=' -f2)
+update_menu1="当前版本:${version}
+正在检查更新..."
+{
 git fetch origin master > /dev/null 2>&1
 if [ $? -ne 0 ]; then
     sleep 2
-    dialog --title "错误" --msgbox "请检查网络和权限." 10 30
-    clear
+    dialog --title "错误: 1002" --msgbox "请检查网络和权限." 6 40
     exit 1
 fi
 git_version=$(curl -s "https://gitee.com/lingfengai/nbum/raw/master/update.md" | awk -F '"' '/version/ { print $2 }')
 LOCAL=$(git rev-parse HEAD)
 REMOTE=$(git rev-parse origin/master)
+} | dialog --infobox "${update_menu1}" 6 30
 if [ "$LOCAL" != "$REMOTE" ]; then
-    dialog --title "自动更新" --infobox "发现更新，正在进行资源校验..." 10 30
+    dialog --infobox "发现更新，正在校验版本号" 6 30
     git pull origin master > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-        dialog --title "错误" --msgbox "请检查网络和权限." 10 30
+        dialog --title "错误:1002" --msgbox "请检查网络和权限." 6 40
         clear
         exit 1
     fi
@@ -29,15 +38,16 @@ if [ "$LOCAL" != "$REMOTE" ]; then
             echo $percent
             sleep 0.01
         done
-    } | dialog --gauge "发现更新，最新版本:$git_version" 10 30
-    dialog --title "更新完成" --infobox "即将重启脚本" 10 30
+    } | dialog --gauge "发现更新，最新版本:$git_version" 6 30
+    dialog --infobox "更新完成，即将重启脚本" 6 30
     sleep 1
     cd "${nbum_aop}"
     source nbum.sh
 else
-    dialog --title "最新版本:$git_version" --infobox "没有发现更新" 10 30
+    dialog --infobox "没有发现更新" 6 30
     sleep 0.5
 fi
+}
 trap 'ctrlc' SIGINT
 ctrlc() {
     choice_ctrlc=$(dialog --clear --title "菜单" \
@@ -55,7 +65,7 @@ ctrlc() {
         *) ctrlc ;;
     esac
 }
-function main_menu() {
+main_menu() {
 current="main_menu"
 if [ "$(uname -o)" == "GNU/Linux" ]; then
     if [ -e "/etc/os-release" ]; then
@@ -93,7 +103,6 @@ else
     0 "👋 退出:拜拜了您嘞" )
 fi
 if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
-    clear
     exit
 fi 
 case $main_choice in 
@@ -111,7 +120,7 @@ case $main_choice in
     *) main_menu ;; 
    esac 
 }
-function qq_menu() {
+qq_menu() {
 current="qq_menu"
 qq_choice=$(dialog --stdout --scrollbar \
 --title "Yunzai-Bot菜单" \
@@ -126,8 +135,8 @@ if [ $? -eq 1 ] || [ $? -eq 255 ]; then
     main_menu
 fi 
 case $qq_choice in 
-    1) if [ -d "$HOME/.nbum/Yunzai-Bot" ];then
-        cd "$HOME/.nbum/Yunzai-Bot"
+    1) if [ -d "$nbum_home/Yunzai-Bot" ];then
+        cd "$nbum_home/Yunzai-Bot"
         pnpm install -P
         node app
         qq_menu
@@ -143,21 +152,21 @@ case $qq_choice in
             dialog --msgbox '软件包错误' 10 40
             qq_menu
         fi
-        cd "$HOME/.nbum"
+        cd "$nbum_home"
         git clone --depth=1 -b main https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git
         cd Yunzai-Bot
         npm install pnpm -g
         pnpm install -P
         qq_menu ;;
-     3) if [ -d "$HOME/.nbum/Yunzai-Bot" ];then
-            cd "$HOME/.nbum/Yunzai-Bot"
+     3) if [ -d "$nbum_home/Yunzai-Bot" ];then
+            cd "$nbum_home/Yunzai-Bot"
             git remote set-url origin https://gitee.com/yoimiya-kokomi/Yunzai-Bot.git && git checkout . && git pull &&  git reset --hard origin/main  && pnpm install -P && npm run login
             qq_menu
         else
             dialog --title "error" --msgbox '没安装你让我怎么修复？' 10 40
             qq_menu
         fi ;;
-     4) cd "$HOME/.nbum";rm -rf Yunzai-Bot
+     4) cd "$nbum_home";rm -rf Yunzai-Bot
         if command -v apt-get >/dev/null 2>&1; then
             apt remove -y npm redis nodejs;apt autoremove -y
         elif command -v pacman >/dev/null 2>&1; then
@@ -171,7 +180,7 @@ case $qq_choice in
      *) qq_menu ;; 
 esac
 }
-function shuaji_menu() {
+shuaji_menu() {
 current="shuaji_menu"
 choice_shuaji=$(dialog --stdout --scrollbar --title "刷只因工具" \
 --menu "请选择一个选项:" \
@@ -198,8 +207,8 @@ case $choice_shuaji in
        fi
        adbtools_menu
     ;;
-    2) cd "$HOME/.nbum"
-       if [ -d "$HOME/.nbum/oziptozip" ];then
+    2) cd "$nbum_home"
+       if [ -d "$nbum_home/oziptozip" ];then
         cd oziptozip
        else
         git clone https://github.com/liyw0205/oziptozip.git
@@ -248,7 +257,7 @@ case $adbtools_choice in
     0) shuaji_menu ;;
 esac
 }
-function android_menu() {
+android_menu() {
 current="android_menu"
 choice_android=$(dialog --stdout --scrollbar --title "Android工具" \
 --menu "请选择一个选项:" \
@@ -271,7 +280,7 @@ case $choice_android in
     *) android_menu ;;
 esac
 }
-function setting_menu() {
+setting_menu() {
 current="setting_menu"
 setting_choice=$(dialog --stdout --scrollbar \
 --title "setting" \
@@ -280,56 +289,39 @@ setting_choice=$(dialog --stdout --scrollbar \
 " " "-🍓设置相关-" \
 1 "🍧 *°▽°*update" \
 2 "☂️ 切换仓库源" \
+3 "🚧 启动设置" \
 " " "-🚥脚本相关-" \
-3 "⚡ 前往gitee" \
-4 "💾 更新日志" \
-5 "🤔 疑难杂症" \
+4 "⚡ 前往gitee" \
+5 "💾 更新日志" \
+6 "🤔 疑难杂症" \
+7 "💻 密钥功能" \
 0 "🔙 返回主菜单")
 if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
     main_menu 
-fi 
+fi
 case $setting_choice in 
-    1) cd "$nbum_app";git pull origin master;;
+    1) nbum_update;setting_menu ;;
     2) setting_git_menu ;;
-    3) case $(uname -o) in
+    4) case $(uname -o) in
         Android) am start -a android.intent.action.VIEW -d "${nbum_gitee}" ;;
        esac
        dialog --msgbox 'https://gitee.com/lingfengai/nbum' 10 50
        setting_menu ;;
-    4) setting_change_menu ;;
-    5) setting_problem_menu ;;
+    5) setting_change_menu ;;
+    6) main_menu ;;
+    7) setting_key_check_menu ;;
     0) main_menu ;; 
     *) setting_menu ;; 
 esac
 }
-function setting_change_menu() {
+setting_change_menu() {
 current="setting_change_menu"
 changelog=$(cat "$nbum_app/update.md")
 dialog --no-collapse --title "更新日志" --msgbox "$changelog" 25 80
 setting_menu
 }
-function setting_problem_menu() {
-current="setting_problem_menu"
-problem="
-1️⃣QAQ  为什么主菜单少了一些选项
-because：
-一些功能是针对不同系统制作的，
-其他系统无法使用
-所以进行了隐藏
-
-2️⃣QAQ  有bug怎么办
-傻嘚，去gitee反馈
-
-3️⃣QAQ  无法自动更新
-自己去脚本选项/update手动更新
-
-4️⃣QAQ  为什么会更新失败(ο´･д･)??
-because：
-网络问题，gitee问题，代码问题"
-dialog --no-collapse --title "疑难杂症大全" --msgbox "$problem" 25 80
-setting_menu
-}
 setting_git_menu() {
+cd "$nbum_app"
 remote_url=$(git remote get-url origin)
 if [[ ${remote_url} == *"gitee"* ]]; then
     dialog --title "当前仓库源为Gitee" --yesno "你是否要切换仓库源为Github？" 7 40
@@ -348,4 +340,41 @@ else
 fi
 setting_menu
 }
+setting_key_check_menu() {
+encoded_key=$(dialog --stdout --inputbox "请输入密钥:" 0 0)
+if [ $? -eq 1 ] || [ $? -eq 255 ]; then 
+    setting_menu
+fi
+decoded_key=$(echo -n "$encoded_key" | base64 -d)
+key_regex="^[A-Z]{4}[0-9]{8}$"
+if [[ $decoded_key =~ $key_regex ]]; then
+    letters=${decoded_key:0:4}
+    key_date=${decoded_key:4}
+    current_date=$(date +"%Y%m%d")
+    if [[ $date -gt $current_date ]]; then
+        dialog --msgbox "密钥错误" 6 30
+        setting_menu
+    else
+        key_value=$(grep "^key=" "$nbum_setting" | cut -d'=' -f2)
+        if [ -n "$key_value" ]; then
+            sed -i 's/^key=.*/key='"$encoded_key"'/' "$nbum_setting"
+        else
+            sed -i 's/^key=.*/key='"$key_value$encoded_key"'/' "$nbum_setting"
+        fi
+        if [[ $? -eq 0 ]]; then
+            dialog --msgbox "校验成功:${key_date}" 6 30
+            setting_menu
+        else
+            dialog --title "错误:1003" --msgbox "校验成功，但是密钥写入失败" 6 40
+            setting_menu
+        fi
+    fi
+else
+    dialog --msgbox "密钥错误" 6 30
+    setting_menu
+fi
+}
+nbum_loading
+source 2.sh
+nbum_update
 main_menu

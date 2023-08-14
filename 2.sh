@@ -9,6 +9,15 @@ cyan="\033[36m"
 green="\033[32m"
 nbum_home="$HOME/.nbum"
 nbum_app="$nbum_home/nbum"
+nbum_setting="$nbum_home/setting"
+nbum_files=$(dirname "$(which bash)")
+setting_txt="
+#注：请不要自行修改该文件内容
+#1为开启，2为关闭
+check=1
+update=1
+#密钥的值
+key="
 nbum_gitee="https://gitee.com/lingfengai/nbum.git"
 nbum_github="https://github.com/lingfengai2/nbum.git"
 install_check() {
@@ -38,8 +47,8 @@ case $gitee_or_github in
 *) echo -e "${green}请输入${yellow}正确的选项${white}"
    gitee_or_github_menu ;;
 esac
-if [ ! -d "$HOME/.nbum/nbum" ]; then
-    cd "$nbum_home/nbum"
+if [ ! -d "$nbum_app" ]; then
+    cd "$nbum_app"
     echo -e "${red}下载失败，请重试${white}"
     gitee_or_github_menu
 fi
@@ -50,7 +59,7 @@ if [ "$(uname -o)" == "GNU/Linux" ]; then
     elif command -v pacman >/dev/null 2>&1; then
         PM="pacman -Syu --noconfirm"
     else
-        echo "$cyan请确认$purple Linux发行版$cyan是否受支持$white"
+        echo -e "$cyan请确认$purple Linux发行版$cyan是否受支持$white"
         exit 6
     fi
 elif [ "$(uname -o)" == "Android" ]; then
@@ -61,16 +70,43 @@ fi
 if ! command -v dialog > /dev/null || ! command -v git > /dev/null || ! command -v which > /dev/null; then
     install_check
 fi
-if [ ! -d "$HOME/.nbum" ]; then
-    mkdir "$HOME/.nbum"
+if [ ! -d "$nbum_home" ]; then
+    mkdir "$nbum_home"
+    if [ $? -eq 0 ]; then
+        echo -e "${green}- 已成功创建数据目录 -${white}"
+    else
+        echo -e "${red}创建数据目录失败${white}"
+    fi
 fi
-if [ ! -d "$HOME/.nbum/nbum" ]; then
+if [ ! -d "$nbum_app" ]; then
     cd "$nbum_home"
     gitee_or_github_menu
 fi
-nbum_files=$(dirname "$(which bash)")
+if [ -f "$nbum_setting" ]; then
+    if [ ! -s "$nbum_setting" ]; then
+        echo "txt" > "$nbum_setting"
+        if [ $? -eq 0 ]; then
+            echo -e "${green}- 已成功将内容写入数据文件 -${white}"
+        else
+            echo -e "${red}写入数据文件失败${white}"
+        fi
+    fi
+else
+    echo "$setting_txt" > "$nbum_setting"
+    if [ $? -eq 0 ]; then
+        echo -e "${green}- 已成功创建并写入数据文件 -${white}"
+    else
+        echo -e "${red}创建数据文件失败${white}"
+    fi
+fi
 if [ ! -f "$nbum_files/nbum" ]; then
     touch "$nbum_files/nbum"
+    if [ $? -eq 0 ]; then
+        echo -e "${green}- 已成功创建启动文件 -${white}"
+    else
+        echo -e "${red}创建启动文件失败${white}"
+        exit 1
+    fi
 fi
 line_to_append='exec "$HOME/.nbum/nbum/nbum.sh" "$@"'
 if ! grep -q "$line_to_append" "$nbum_files/nbum" ; then
