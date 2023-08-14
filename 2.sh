@@ -42,8 +42,8 @@ echo -e "请输入一个选项 ${yellow}[Y/n]${white}"
 read gitee_or_github
 gitee_or_github=${gitee_or_github:-y}
 case $gitee_or_github in
-[yY]) git clone "${nbum_gitee} ;;
-[nN]) git clone "${nbum_github} ;;
+[yY]) git clone "${nbum_gitee}" ;;
+[nN]) git clone "${nbum_github}" ;;
 *) echo -e "${green}请输入${yellow}正确的选项${white}"
    gitee_or_github_menu ;;
 esac
